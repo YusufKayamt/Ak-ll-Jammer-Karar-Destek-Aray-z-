@@ -14,8 +14,8 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         // Veri Formatı
         public const int BLADERF_FORMAT_SC16_Q11 = 0;
 
-        [DllImport("bladerf.dll", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        public static extern int bladerf_open(out IntPtr device, [MarshalAs(UnmanagedType.LPStr)] string device_identifier);
+        [DllImport("bladerf.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int bladerf_open(out IntPtr device, IntPtr device_identifier);
 
         [DllImport(DllName, EntryPoint = "bladerf_close", CallingConvention = CallingConvention.Cdecl)]
         public static extern void bladerf_close(IntPtr dev);

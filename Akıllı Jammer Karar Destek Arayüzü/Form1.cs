@@ -13,14 +13,11 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
     {
         private IntPtr _devicePointer = IntPtr.Zero;
         private bool _isDeviceOpen = false;
+        private bool _isStreaming = false;
         private string eskiFrekansBirim = "";
         private string eskiOrneklemeBirim = "";
         private string eskiBantBirim = "";
         private short[]? sonIqHafizasi = null;
-        private IntPtr _txDevicePointer = IntPtr.Zero; 
-        private IntPtr _rxDevicePointer = IntPtr.Zero; 
-        private bool _isTxOpen = false;
-        private bool _isRxOpen = false;
 
         public Form1()
         {
@@ -57,76 +54,118 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
         private void btnBaglan_Click(object sender, EventArgs e)
         {
+            ulong frekansCarpan = 1;
+            if (cmbBirim.Text == "kHz") frekansCarpan = 1000;
+            else if (cmbBirim.Text == "MHz") frekansCarpan = 1000000;
+            else if (cmbBirim.Text == "GHz") frekansCarpan = 1000000000;
+
+            uint orneklemeCarpan = 1;
+            if (cmbOrneklemeBirim.Text.Contains("kHz") || cmbOrneklemeBirim.Text.Contains("kSps")) orneklemeCarpan = 1000;
+            else if (cmbOrneklemeBirim.Text.Contains("MHz") || cmbOrneklemeBirim.Text.Contains("MSps")) orneklemeCarpan = 1000000;
+            else if (cmbOrneklemeBirim.Text.Contains("GHz")) orneklemeCarpan = 1000000000;
+
+            uint bantCarpan = 1;
+            if (cmbBantBirim.Text.Contains("kHz")) bantCarpan = 1000;
+            else if (cmbBantBirim.Text.Contains("MHz")) bantCarpan = 1000000;
+            else if (cmbBantBirim.Text.Contains("GHz")) bantCarpan = 1000000000;
+
+            decimal geciciFrekans = numFrekans.Value * (decimal)frekansCarpan;
+            decimal geciciOrnekleme = numOrnekleme.Value * (decimal)orneklemeCarpan;
+            decimal geciciBant = numBantGenisligi.Value * (decimal)bantCarpan;
+
+            if (geciciFrekans < 70000000m) geciciFrekans = 70000000m;
+            if (geciciFrekans > 6000000000m) geciciFrekans = 6000000000m;
+
+            if (geciciOrnekleme < 1000000m) geciciOrnekleme = 1000000m;
+            if (geciciOrnekleme > 61440000m) geciciOrnekleme = 61440000m;
+
+            if (geciciBant < 1000000m) geciciBant = 1000000m;
+            if (geciciBant > 56000000m) geciciBant = 56000000m;
+
+            decimal guvenliOrneklemeAltSiniri = geciciBant * 1.2m;
+            if (geciciOrnekleme < guvenliOrneklemeAltSiniri)
+            {
+                geciciOrnekleme = guvenliOrneklemeAltSiniri;
+                if (geciciOrnekleme > 61440000m)
+                {
+                    geciciOrnekleme = 61440000m;
+                    geciciBant = geciciOrnekleme / 1.2m;
+                }
+            }
+
+            numFrekans.Value = geciciFrekans / (decimal)frekansCarpan;
+            numOrnekleme.Value = geciciOrnekleme / (decimal)orneklemeCarpan;
+            numBantGenisligi.Value = geciciBant / (decimal)bantCarpan;
+
+            ulong gercekFrekans = (ulong)geciciFrekans;
+            uint gercekOrnekleme = (uint)geciciOrnekleme;
+            uint gercekBantGenisligi = (uint)geciciBant;
+
             if (!_isDeviceOpen)
             {
                 btnBaglan.Enabled = false;
-                btnBaglan.Text = "Cihazlar Aranıyor...";
+                btnBaglan.Text = "Cihaz Aranıyor...";
                 Application.DoEvents();
 
-                int txStatus = -1;
-                int rxStatus = -1;
+                int status = -1;
 
                 try
                 {
-
-                    txStatus = BladeRFBridge.bladerf_open(out _txDevicePointer, "*:instance=0");
-
-                    // USB hattı güç dengesi
-                    System.Threading.Thread.Sleep(1000);
-
-                    rxStatus = BladeRFBridge.bladerf_open(out _rxDevicePointer, "*:instance=1");
+                    status = BladeRFBridge.bladerf_open(out _devicePointer, IntPtr.Zero);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Kritik Bağlantı İstisnası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Bağlantı İstisnası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     btnBaglan.Enabled = true;
-                    btnBaglan.Text = "Cihazlara Bağlan ve Hazırla";
+                    btnBaglan.Text = "Cihaza Bağlan";
                     return;
                 }
 
-                if (txStatus == 0 && rxStatus == 0 && _txDevicePointer != IntPtr.Zero && _rxDevicePointer != IntPtr.Zero)
+                if (status == 0 && _devicePointer != IntPtr.Zero)
                 {
-                    _isTxOpen = true;
-                    _isRxOpen = true;
                     _isDeviceOpen = true;
 
-                    btnBaglan.BackColor = System.Drawing.Color.Green;
-                    btnBaglan.Text = "Sistem Aktif (TX & RX)!";
+                    btnBaglan.BackColor = Color.Green;
+                    btnBaglan.Text = "Sistem Aktif (İzleme)";
                     btnBaglan.Enabled = true;
                     btnOku.Enabled = true;
-
-                    ulong frekansCarpan = cmbBirim.Text == "GHz" ? 1000000000UL : (cmbBirim.Text == "MHz" ? 1000000UL : 1000UL);
-                    ulong gercekFrekans = (ulong)(numFrekans.Value * (decimal)frekansCarpan);
-
-                    uint orneklemeCarpan = cmbOrneklemeBirim.Text.Contains("GHz") ? 1000000000U : (cmbOrneklemeBirim.Text.Contains("MHz") || cmbOrneklemeBirim.Text.Contains("MSps") ? 1000000U : 1000U);
-                    uint gercekOrnekleme = (uint)(numOrnekleme.Value * (decimal)orneklemeCarpan);
-
-                    uint bantCarpan = cmbBantBirim.Text.Contains("GHz") ? 1000000000U : (cmbBantBirim.Text.Contains("MHz") ? 1000000U : 1000U);
-                    uint gercekBantGenisligi = (uint)(numBantGenisligi.Value * (decimal)bantCarpan);
-
-                    BladeRFBridge.bladerf_set_frequency(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, gercekFrekans);
-                    BladeRFBridge.bladerf_set_sample_rate(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, gercekOrnekleme, out uint txActualSR);
-                    BladeRFBridge.bladerf_set_bandwidth(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, gercekBantGenisligi, out uint txActualBW);
-
-                    BladeRFBridge.bladerf_set_frequency(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekFrekans);
-                    BladeRFBridge.bladerf_set_sample_rate(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekOrnekleme, out uint rxActualSR);
-                    BladeRFBridge.bladerf_set_bandwidth(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekBantGenisligi, out uint rxActualBW);
-
-                    MessageBox.Show("İki SDR cihazı da başarıyla bağlandı ve yapılandırıldı!", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
                     btnBaglan.Text = "Bağlantı Hatası!";
                     btnBaglan.Enabled = true;
-                    MessageBox.Show($"Cihazlar açılamadı!\nTX Hata Kodu: {txStatus}\nRX Hata Kodu: {rxStatus}\n\nLütfen her iki cihazın da USB'ye takılı ve WinUSB sürücüsünde olduğundan emin olun.", "Bağlantı Hatası", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show($"Cihaz açılamadı! Hata Kodu: {status}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
 
-                    if (_txDevicePointer != IntPtr.Zero) { BladeRFBridge.bladerf_close(_txDevicePointer); _txDevicePointer = IntPtr.Zero; }
-                    if (_rxDevicePointer != IntPtr.Zero) { BladeRFBridge.bladerf_close(_rxDevicePointer); _rxDevicePointer = IntPtr.Zero; }
+            if (_isDeviceOpen)
+            {
+                if (_devicePointer == IntPtr.Zero)
+                {
+                    MessageBox.Show("Cihaz işaretçisi geçerli değil! Bağlantı koptu.", "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    _isDeviceOpen = false;
+                    btnBaglan.Text = "Cihaza Bağlan";
+                    btnBaglan.BackColor = Color.White;
+                    return;
+                }
+
+                int freqStatus = BladeRFBridge.bladerf_set_frequency(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekFrekans);
+                BladeRFBridge.bladerf_set_sample_rate(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekOrnekleme, out uint actualSR);
+                BladeRFBridge.bladerf_set_bandwidth(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekBantGenisligi, out uint actualBW);
+
+                if (freqStatus == 0)
+                {
+                    btnOku.Enabled = true;
+                    MessageBox.Show($"Parametreler cihaza başarıyla uygulandı!\n\nDonanımın Ayarladığı Örnekleme: {actualSR} Hz", "Güncelleme", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    btnOku.Enabled = false;
+                    MessageBox.Show("Parametreler cihaza uygulanamadı. Sınırları kontrol edin.", "Donanım Sınırı İhlali", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
         }
-
-
 
         private void GrafikGuncelle()
         {
@@ -274,8 +313,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             catch (InvalidOperationException) { return; }
         }
 
-        private bool _isStreaming = false;
-
         private async void btnOku_Click(object sender, EventArgs e)
         {
             if (!_isDeviceOpen)
@@ -289,7 +326,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 _isStreaming = false;
                 btnOku.Text = "Hızlı Veri Oku";
                 btnOku.BackColor = Color.White;
-                rtbKonsol.AppendText("\n[SİSTEM] Aktif operasyon (Stream) durduruldu.\n");
+                rtbKonsol.AppendText("\n[SİSTEM] Spektrum izleme durduruldu.\n");
                 return;
             }
 
@@ -299,131 +336,37 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
             uint num_samples = 8192;
 
-            if (rdoTaarruzModu.Checked)
+            rtbKonsol.AppendText("\n[SİSTEM] Canlı spektrum dinleme (RX) BAŞLATILDI...\n");
+            rtbKonsol.ScrollToCaret();
+
+            BladeRFBridge.bladerf_sync_config(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, BladeRFBridge.BLADERF_FORMAT_SC16_Q11, 16, num_samples, 8, 5000);
+            BladeRFBridge.bladerf_enable_module(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, true);
+
+            await Task.Run(async () =>
             {
-
-                rtbKonsol.AppendText("\n[TAARRUZ] TX Modülü yapılandırılıyor...\n");
-
-                BladeRFBridge.bladerf_enable_module(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, false);
-
-                ulong frekansCarpan = 1;
-                if (cmbBirim.Text == "kHz") frekansCarpan = 1000;
-                else if (cmbBirim.Text == "MHz") frekansCarpan = 1000000;
-                else if (cmbBirim.Text == "GHz") frekansCarpan = 1000000000;
-                ulong gercekFrekans = (ulong)(numFrekans.Value * (decimal)frekansCarpan);
-
-                BladeRFBridge.bladerf_set_frequency(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, gercekFrekans);
-
-                uint actualSR, actualBW;
-                BladeRFBridge.bladerf_set_sample_rate(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, 20000000, out actualSR);
-                BladeRFBridge.bladerf_set_bandwidth(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, 20000000, out actualBW);
-                BladeRFBridge.bladerf_set_gain(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, 60);
-
-                int configStatus = BladeRFBridge.bladerf_sync_config(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, BladeRFBridge.BLADERF_FORMAT_SC16_Q11, 16, num_samples, 8, 5000);
-                if (configStatus != 0)
+                while (_isStreaming)
                 {
-                    this.Invoke((MethodInvoker)delegate { rtbKonsol.AppendText($"[HATA] TX Yapılandırma Başarısız! Kod: {configStatus}\n"); });
-                    _isStreaming = false;
-                    btnOku.Text = "Hızlı Veri Oku";
-                    btnOku.BackColor = Color.White;
-                    return;
-                }
+                    short[] iqData = new short[num_samples * 2];
+                    int rxStatus = BladeRFBridge.bladerf_sync_rx(_devicePointer, iqData, num_samples, IntPtr.Zero, 1000);
 
-                int enableStatus = BladeRFBridge.bladerf_enable_module(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, true);
-                if (enableStatus != 0)
-                {
-                    this.Invoke((MethodInvoker)delegate { rtbKonsol.AppendText($"[HATA] TX Modülü Açılamadı! Kod: {enableStatus}\n"); });
-                    _isStreaming = false;
-                    btnOku.Text = "Hızlı Veri Oku";
-                    btnOku.BackColor = Color.White;
-                    return;
-                }
-
-                short[] txData = new short[num_samples * 2];
-                double orneklemeHizi = 20000000.0;
-                double hedefFrekansKaymasi = 1000000.0;
-                double fazArtisi = 2.0 * Math.PI * (hedefFrekansKaymasi / orneklemeHizi);
-                double mevcutFaz = 0.0;
-                short genlik = 20000;
-
-                for (int i = 0; i < num_samples; i++)
-                {
-                    txData[i * 2] = (short)(genlik * Math.Cos(mevcutFaz));
-                    txData[i * 2 + 1] = (short)(genlik * Math.Sin(mevcutFaz));
-
-                    mevcutFaz += fazArtisi;
-                    if (mevcutFaz > 2.0 * Math.PI) mevcutFaz -= 2.0 * Math.PI;
-                }
-
-                rtbKonsol.AppendText("[TAARRUZ] Sinyal havaya ateşlendi! (1 MHz ofsetli)\n");
-                rtbKonsol.ScrollToCaret();
-
-                await Task.Run(async () =>
-                {
-                    try
+                    if (rxStatus == 0 && _isStreaming)
                     {
-                        while (_isStreaming)
-                        {
-                            int txStatus = BladeRFBridge.bladerf_sync_tx(_txDevicePointer, txData, (uint)num_samples, IntPtr.Zero, 1000);
-
-                            if (txStatus != 0 && _isStreaming)
-                            {
-                                this.Invoke((MethodInvoker)delegate { rtbKonsol.AppendText($"[HATA] TX Koptu: {txStatus}\n"); });
-                                await Task.Delay(1000);
-                            }
-                        }
+                        sonIqHafizasi = iqData;
+                        GrafikGuncelle();
                     }
-                    finally
-                    {
-                        BladeRFBridge.bladerf_enable_module(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, false);
-                    }
-                });
-            }
-            else
-            {
-
-                rtbKonsol.AppendText("\n[SİSTEM] Canlı dinleme (RX) BAŞLATILDI...\n");
-                rtbKonsol.ScrollToCaret();
-
-                BladeRFBridge.bladerf_enable_module(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, false);
-                BladeRFBridge.bladerf_sync_config(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, BladeRFBridge.BLADERF_FORMAT_SC16_Q11, 16, num_samples, 8, 5000);
-                BladeRFBridge.bladerf_enable_module(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, true);
-
-                await Task.Run(async () =>
-                {
-                    while (_isStreaming)
-                    {
-                        short[] iqData = new short[num_samples * 2];
-                        int rxStatus = BladeRFBridge.bladerf_sync_rx(_rxDevicePointer, iqData, num_samples, IntPtr.Zero, 1000);
-
-                        if (rxStatus == 0 && _isStreaming)
-                        {
-                            sonIqHafizasi = iqData;
-                            GrafikGuncelle();
-                        }
-                        await Task.Delay(20);
-                    }
-                    BladeRFBridge.bladerf_enable_module(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, false);
-                });
-            }
+                    await Task.Delay(20);
+                }
+                BladeRFBridge.bladerf_enable_module(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, false);
+            });
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             _isStreaming = false;
-            if (_isDeviceOpen)
+            if (_isDeviceOpen && _devicePointer != IntPtr.Zero)
             {
-                if (_txDevicePointer != IntPtr.Zero)
-                {
-                    BladeRFBridge.bladerf_enable_module(_txDevicePointer, BladeRFBridge.BLADERF_MODULE_TX, false);
-                    BladeRFBridge.bladerf_close(_txDevicePointer);
-                }
-
-                if (_rxDevicePointer != IntPtr.Zero)
-                {
-                    BladeRFBridge.bladerf_enable_module(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, false);
-                    BladeRFBridge.bladerf_close(_rxDevicePointer);
-                }
+                BladeRFBridge.bladerf_enable_module(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, false);
+                BladeRFBridge.bladerf_close(_devicePointer);
             }
             base.OnFormClosing(e);
         }
@@ -519,7 +462,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             if (rdoTaarruzModu.Checked)
             {
                 rtbKonsol.SelectionColor = Color.Red;
-                rtbKonsol.AppendText("\n[DİKKAT] Taarruz (TX) modülleri aktif edilecektir!\n");
+                rtbKonsol.AppendText("\n[DİKKAT] Taarruz modu harici terminal üzerinden yönetilecektir.\n");
                 rtbKonsol.SelectionColor = rtbKonsol.ForeColor;
                 rtbKonsol.ScrollToCaret();
             }
@@ -530,18 +473,18 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             if (rdoTestModu.Checked)
             {
                 rtbKonsol.AppendText("\n[SİSTEM] Dahili Test (Loopback) Modu Aktif.\n");
-                if (_isDeviceOpen && _rxDevicePointer != IntPtr.Zero)
+                if (_isDeviceOpen && _devicePointer != IntPtr.Zero)
                 {
-                    BladeRFBridge.bladerf_set_loopback(_rxDevicePointer, 2);
-                    rtbKonsol.AppendText("[DONANIM] RX Donanımsal Loopback şalteri kapatıldı.\n");
+                    BladeRFBridge.bladerf_set_loopback(_devicePointer, 2);
+                    rtbKonsol.AppendText("[DONANIM] Donanımsal Loopback şalteri kapatıldı.\n");
                 }
                 rtbKonsol.ScrollToCaret();
             }
             else
             {
-                if (_isDeviceOpen && _rxDevicePointer != IntPtr.Zero)
+                if (_isDeviceOpen && _devicePointer != IntPtr.Zero)
                 {
-                    BladeRFBridge.bladerf_set_loopback(_rxDevicePointer, 0);
+                    BladeRFBridge.bladerf_set_loopback(_devicePointer, 0);
                     rtbKonsol.AppendText("[DONANIM] Loopback devreden çıkarıldı.\n");
                 }
             }
@@ -550,37 +493,37 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private void trbRxKazanci_Scroll(object sender, EventArgs e)
         {
             lblRxKazanciDegeri.Text = trbRxKazanci.Value.ToString() + " dB";
-            if (!_isDeviceOpen || _rxDevicePointer == IntPtr.Zero) return;
+            if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
             int yeniKazanc = trbRxKazanci.Value;
-            BladeRFBridge.bladerf_set_gain(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, yeniKazanc);
+            BladeRFBridge.bladerf_set_gain(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, yeniKazanc);
             rtbKonsol.AppendText($"[DONANIM] RX Kazancı {yeniKazanc} dB olarak ayarlandı.\n");
             rtbKonsol.ScrollToCaret();
         }
 
         private void chkAGC_CheckedChanged(object sender, EventArgs e)
         {
-            if (!_isDeviceOpen || _rxDevicePointer == IntPtr.Zero) return;
+            if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
             if (chkAGC.Checked)
             {
-                BladeRFBridge.bladerf_set_gain_mode(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, 1);
+                BladeRFBridge.bladerf_set_gain_mode(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, 1);
                 rtbKonsol.AppendText("[DONANIM] AGC (Otomatik Kazanç) AKTİF.\n");
                 trbRxKazanci.Enabled = false;
             }
             else
             {
-                BladeRFBridge.bladerf_set_gain_mode(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, 0);
+                BladeRFBridge.bladerf_set_gain_mode(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, 0);
                 rtbKonsol.AppendText("[DONANIM] AGC KAPATILDI.\n");
                 trbRxKazanci.Enabled = true;
-                BladeRFBridge.bladerf_set_gain(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, trbRxKazanci.Value);
+                BladeRFBridge.bladerf_set_gain(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, trbRxKazanci.Value);
             }
             rtbKonsol.ScrollToCaret();
         }
 
         private void chkBiasTee_CheckedChanged(object sender, EventArgs e)
         {
-            if (!_isDeviceOpen || _rxDevicePointer == IntPtr.Zero) return;
+            if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
             bool aktifMi = chkBiasTee.Checked;
-            BladeRFBridge.bladerf_set_bias_tee(_rxDevicePointer, BladeRFBridge.BLADERF_MODULE_RX, aktifMi);
+            BladeRFBridge.bladerf_set_bias_tee(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, aktifMi);
             if (aktifMi)
             {
                 rtbKonsol.SelectionColor = Color.Orange;
