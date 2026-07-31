@@ -75,7 +75,6 @@
             chkGurultuEngelle = new CheckBox();
             numKirpmaYuzdesi = new NumericUpDown();
             label10 = new Label();
-            lblKırpılmayanAlan = new Label();
             ((System.ComponentModel.ISupportInitialize)numFrekans).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numOrnekleme).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numBantGenisligi).BeginInit();
@@ -652,12 +651,14 @@
             // numKirpmaYuzdesi
             // 
             numKirpmaYuzdesi.Anchor = AnchorStyles.None;
+            numKirpmaYuzdesi.InterceptArrowKeys = false;
             numKirpmaYuzdesi.Location = new Point(1477, 384);
-            numKirpmaYuzdesi.Maximum = new decimal(new int[] { 40, 0, 0, 0 });
+            numKirpmaYuzdesi.Maximum = new decimal(new int[] { 30, 0, 0, 0 });
+            numKirpmaYuzdesi.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
             numKirpmaYuzdesi.Name = "numKirpmaYuzdesi";
             numKirpmaYuzdesi.Size = new Size(60, 27);
             numKirpmaYuzdesi.TabIndex = 44;
-            numKirpmaYuzdesi.Value = new decimal(new int[] { 10, 0, 0, 0 });
+            numKirpmaYuzdesi.Value = new decimal(new int[] { 30, 0, 0, 0 });
             numKirpmaYuzdesi.ValueChanged += numKirpmaYuzdesi_ValueChanged;
             // 
             // label10
@@ -673,20 +674,6 @@
             label10.TabIndex = 45;
             label10.Text = "Kenar Kırpma ";
             // 
-            // lblKırpılmayanAlan
-            // 
-            lblKırpılmayanAlan.Anchor = AnchorStyles.None;
-            lblKırpılmayanAlan.AutoSize = true;
-            lblKırpılmayanAlan.BackColor = Color.White;
-            lblKırpılmayanAlan.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 162);
-            lblKırpılmayanAlan.ForeColor = SystemColors.ActiveCaptionText;
-            lblKırpılmayanAlan.Location = new Point(1543, 383);
-            lblKırpılmayanAlan.Name = "lblKırpılmayanAlan";
-            lblKırpılmayanAlan.Size = new Size(50, 28);
-            lblKırpılmayanAlan.TabIndex = 9;
-            lblKırpılmayanAlan.Text = "%90";
-            lblKırpılmayanAlan.Click += lblKırpılmayanAlan_Click;
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -696,7 +683,6 @@
             AutoValidate = AutoValidate.EnablePreventFocusChange;
             BackColor = Color.DarkGray;
             ClientSize = new Size(1920, 859);
-            Controls.Add(lblKırpılmayanAlan);
             Controls.Add(label10);
             Controls.Add(numKirpmaYuzdesi);
             Controls.Add(chkGurultuEngelle);
@@ -806,6 +792,5 @@
         private CheckBox chkGurultuEngelle;
         private NumericUpDown numKirpmaYuzdesi;
         private Label label10;
-        private Label lblKırpılmayanAlan;
     }
 }

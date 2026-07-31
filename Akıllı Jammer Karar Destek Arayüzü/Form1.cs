@@ -30,7 +30,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private bool dcKalibrasyonTetiklendi = false;
         private double i_offset_degeri = 0.0;
         private double q_offset_degeri = 0.0;
-
+        private uint donanimGercekOrnekleme = 0;
         public Form1()
         {
             InitializeComponent();
@@ -82,7 +82,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             else if (cmbBantBirim.Text.Contains("GHz")) bantCarpan = 1000000000;
             //KIRPMA OLAYI
             decimal kullaniciIstenenBant = numBantGenisligi.Value * (decimal)bantCarpan;
-            decimal kirpmaYuzdesi = 0.10m;
+            decimal kirpmaYuzdesi = numKirpmaYuzdesi.Value / 100m; // Arayüzdeki %30
 
             try
             {
@@ -93,10 +93,8 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             decimal ekstraBant = kullaniciIstenenBant * kirpmaYuzdesi;
 
             decimal geciciBant = kullaniciIstenenBant + ekstraBant;
-
             decimal geciciFrekans = numFrekans.Value * (decimal)frekansCarpan;
             decimal geciciOrnekleme = numOrnekleme.Value * (decimal)orneklemeCarpan;
-
             if (geciciFrekans < 70000000m) geciciFrekans = 70000000m;
             if (geciciFrekans > 6000000000m) geciciFrekans = 6000000000m;
 
@@ -180,32 +178,21 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
                 BladeRFBridge.bladerf_set_sample_rate(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekOrnekleme, out uint actualSR);
                 BladeRFBridge.bladerf_set_bandwidth(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekBantGenisligi, out uint actualBW);
-
                 if (freqStatus == 0)
                 {
-                    // --- YENİ: AÇILIŞTA KAZANÇ SENKRONİZASYONU (HARD-INIT) ---
-                    // Arayüzdeki AGC kutucuğunun durumuna göre doğru başlangıç modunu seçiyoruz
-                    if (chkAGC != null && chkAGC.Checked)
-                    {
-                        // 2 = BLADERF_GAIN_FASTRAK (Hızlı Otomatik AGC Modu)
-                        BladeRFBridge.bladerf_set_gain_mode(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, 2);
-                        rtbKonsol.AppendText("[DONANIM] Açılış senkronizasyonu: AGC (Otomatik Kazanç) modu aktif edildi.\n");
-                    }
-                    else
-                    {
-                        // 1 = BLADERF_GAIN_MGC (Manuel Kazanç Modu)
-                        BladeRFBridge.bladerf_set_gain_mode(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, 1);
-
-                        int baslangicKazanc = 0;
-                        if (trbRxKazanci != null) baslangicKazanc = trbRxKazanci.Value;
-
-                        BladeRFBridge.bladerf_set_gain(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, baslangicKazanc);
-                        rtbKonsol.AppendText($"[DONANIM] Açılış senkronizasyonu: RX Kazancı {baslangicKazanc} dB (Manuel) olarak zorlandı.\n");
-                    }
-                    // --------------------------------------------------------
-
                     btnOku.Enabled = true;
-                    MessageBox.Show($"Parametreler uygulandı!\n\nEkranda Görünen: {numBantGenisligi.Value} {cmbBantBirim.Text}\nArka Planda Çekilen Gizli Bant: {actualBW / 1000000.0:F2} MHz", "Aşırı Örnekleme Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    // Mesaj kutusu yerine kalıcı konsol logu yazdırıyoruz
+                    rtbKonsol.AppendText($"\n[DONANIM] Parametreler cihaza uygulandı!\n");
+                    rtbKonsol.AppendText($"[DONANIM] Gerçekleşen Örnekleme Hızı: {actualSR} Hz\n");
+                    rtbKonsol.ScrollToCaret();
+                }
+                else
+                {
+                    btnOku.Enabled = false;
+
+                    rtbKonsol.AppendText("\n[HATA] Parametreler cihaza uygulanamadı. Sınırları kontrol edin.\n");
+                    rtbKonsol.ScrollToCaret();
                 }
             }
         }
@@ -278,7 +265,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
             MathNet.Numerics.IntegralTransforms.Fourier.Forward(fftVerisi, MathNet.Numerics.IntegralTransforms.FourierOptions.Matlab);
 
-            /* --- AKILLI DC SPIKE YAMALAYICI ---
+            /* DC SPIKE TEPE YÜKSELİŞ ENGELLEYİCİSİ
             // Merkezdeki sahte kuleyi sıfırlayıp dipsiz çukur açmak yerine, 
             // deliğin hemen dışındaki sağlıklı gürültüyü kopyalayıp üstünü örtüyoruz.
             int dcEtkiAlani = 5;
@@ -295,7 +282,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             }
               ------------------------------------*/
 
-            // GÜVENLİK KİLİDİ 1: NullReference Hatasını Önleme
             if (yumusatilmisFFT == null || yumusatilmisFFT.Length != pictureBoxWidth)
             {
                 yumusatilmisFFT = new double[pictureBoxWidth];
@@ -350,8 +336,33 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     PointF[] sinyalNoktalari = new PointF[tuval.Width];
 
                     // --- DİNAMİK KIRPMA OKUMASI (GİZLİ KORUMA BANDI) ---
-                    double baslangicNoktasi = (num_samples - 1) * kirpmaOrani;
-                    double gosterilecekAralik = (num_samples - 1) * (1.0 - (2 * kirpmaOrani));
+                    // --- DİNAMİK VE DONANIMA BAĞLI KUSURSUZ ÖLÇEKLEME ---
+
+                    double gosterilecekBantHz = 20000000.0;
+                    this.Invoke((MethodInvoker)delegate
+                    {
+                        double bCarpan = 1;
+                        if (cmbBantBirim.Text.Contains("k")) bCarpan = 1000;
+                        else if (cmbBantBirim.Text.Contains("M")) bCarpan = 1000000;
+                        else if (cmbBantBirim.Text.Contains("G")) bCarpan = 1000000000;
+
+                        // Kullanıcının ekranda görmek istediği NET alan (Örn: 20 MHz)
+                        gosterilecekBantHz = (double)numBantGenisligi.Value * bCarpan;
+                    });
+
+                    // Donanımdan gelen gerçek hız (Eğer 0 ise varsayılan kullan)
+                    double gercekSR = donanimGercekOrnekleme > 0 ? (double)donanimGercekOrnekleme : 31200000.0;
+
+                    // Güvenlik: Ekranda istenen bant, donanımın verebildiği hızdan büyük olamaz
+                    if (gosterilecekBantHz > gercekSR) gosterilecekBantHz = gercekSR;
+
+                    // Matematik: Toplam FFT genişliği (gercekSR) içinden, ekrana sığacak kısmı bul
+                    double soldanKirpilacakOran = ((gercekSR - gosterilecekBantHz) / 2.0) / gercekSR;
+                    double gosterilecekOran = gosterilecekBantHz / gercekSR;
+
+                    double baslangicNoktasi = (num_samples - 1) * soldanKirpilacakOran;
+                    double gosterilecekAralik = (num_samples - 1) * gosterilecekOran;
+                    // ----------------------------------------------------
 
                     for (int pixelX = 0; pixelX < tuval.Width; pixelX++)
                     {
@@ -860,8 +871,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
         private void numKirpmaYuzdesi_ValueChanged(object sender, EventArgs e)
         {
-            lblKırpılmayanAlan.Text = "%" + (100 - numKirpmaYuzdesi.Value).ToString() ;
-
+           
         }
 
         private void lblKırpılmayanAlan_Click(object sender, EventArgs e)
