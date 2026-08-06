@@ -8,7 +8,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Media;
 namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 {
     public partial class Form1 : Form
@@ -16,6 +16,15 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private IntPtr _devicePointer = IntPtr.Zero;
         private bool _isDeviceOpen = false;
         private bool _isStreaming = false;
+        private bool _islemeKilidi = false;
+        private bool _rxIpligiAktif = false;
+        private bool _ileriModAktif = false;
+        private bool _otomatikDegisim = false;
+        // Dinamik güncelleme ve profil seçimi için kilit mekanizmaları
+        private bool _dinamikGuncellemeBekliyor = false;
+        private bool _profilYukleniyor = false;
+        private bool _cizimMesgul = false;
+
         private string eskiFrekansBirim = "";
         private string eskiOrneklemeBirim = "";
         private string eskiBantBirim = "";
@@ -31,13 +40,30 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private double i_offset_degeri = 0.0;
         private double q_offset_degeri = 0.0;
         private uint donanimGercekOrnekleme = 0;
+
+        private double hedefMarkerFrekansHz = 0;
+        private bool isMarkerDragging = false;
+        private Size orjinalFormBoyutu;
+
         public Form1()
         {
             InitializeComponent();
 
-            if (cmbHedefProfilleri != null && cmbHedefProfilleri.Items.Count > 0)
+            if (btnModMuhendis != null)
             {
-                cmbHedefProfilleri.SelectedIndex = 0;
+                btnModMuhendis.Click -= btnModMuhendis_Click;
+                btnModMuhendis.Click += btnModMuhendis_Click;
+            }
+
+            // Dinamik değer atamalarını tetikleyecek olaylar (Designer'dan bağımsız çalışır)
+            if (numFrekans != null) numFrekans.ValueChanged += (s, e) => DinamikParametreUygula();
+            if (numOrnekleme != null) numOrnekleme.ValueChanged += (s, e) => DinamikParametreUygula();
+            if (numBantGenisligi != null) numBantGenisligi.ValueChanged += (s, e) => DinamikParametreUygula();
+            if (numKirpmaYuzdesi != null) numKirpmaYuzdesi.ValueChanged += (s, e) => DinamikParametreUygula();
+            if (btnSaldırı != null)
+            {
+                btnSaldırı.Enabled = false;
+                btnSaldırı.BackColor = Color.Gray;
             }
 
             if (cmbBirim != null && cmbBirim.Items.Count > 0) cmbBirim.SelectedIndex = 0;
@@ -49,10 +75,140 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             if (cmbBantBirim != null) eskiBantBirim = cmbBantBirim.Text;
         }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            this.Text = "ATEL Akıllı Jammer Karar Destek Arayüzü";
+            this.AutoSize = false;
+            this.AutoScroll = false;
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            orjinalFormBoyutu = this.ClientSize;
+
+            cmbHedefProfilleri.Items.Clear();
+            cmbHedefProfilleri.Items.Add("-----");
+            cmbHedefProfilleri.Items.Add("➕ Yeni Özel Ayar Kaydet...");
+
+            cmbHedefProfilleri.SelectedIndex = -1;
+
+            if (lblSqulechTehtid != null) lblSqulechTehtid.Text = $"%{trbSquelch.Value}";
+            if (lblYumusatmaDegeri != null) lblYumusatmaDegeri.Text = $"%{trbYumusatma.Value}";
+            if (lblTaramaHiziDegeri != null) lblTaramaHiziDegeri.Text = $"{trbTaramaHizi.Value} ms";
+
+            _profilYukleniyor = true;
+
+            if (numFrekans != null) { numFrekans.Minimum = 0; numFrekans.Maximum = 9999999999m; }
+            if (numOrnekleme != null) { numOrnekleme.Minimum = 0; numOrnekleme.Maximum = 9999999999m; }
+            if (numBantGenisligi != null) { numBantGenisligi.Minimum = 0; numBantGenisligi.Maximum = 9999999999m; }
+            if (numKirpmaYuzdesi != null) { numKirpmaYuzdesi.Minimum = 0; numKirpmaYuzdesi.Maximum = 100; }
+
+            cmbBirim.SelectedIndex = cmbBirim.FindString("MHz");
+            numFrekans.Value = 2400m;
+            cmbOrneklemeBirim.SelectedIndex = cmbOrneklemeBirim.FindString("MSps") != -1 ? cmbOrneklemeBirim.FindString("MSps") : cmbOrneklemeBirim.FindString("MHz");
+            numOrnekleme.Value = 22m;
+            cmbBantBirim.SelectedIndex = cmbBantBirim.FindString("MHz");
+            numBantGenisligi.Value = 20m;
+
+            _profilYukleniyor = false;
+
+            _ileriModAktif = false;
+            EkranModunuAyarla(_ileriModAktif);
+
+            lblTehditDurumu.Text = "ASKERİ (TAKTİK) MODDA SİSTEM AÇILIYOR...";
+            lblTehditDurumu.BackColor = Color.DarkSlateGray;
+
+            OtopilotuTetikle();
+        }
+
+        private void btnModMuhendis_Click(object? sender, EventArgs e)
+        {
+            _ileriModAktif = !_ileriModAktif;
+            EkranModunuAyarla(_ileriModAktif);
+        }
+
+        private void EkranModunuAyarla(bool ileriModAcik)
+        {
+            if (ileriModAcik)
+            {
+                this.AutoScroll = true;
+                this.ClientSize = orjinalFormBoyutu;
+
+                foreach (System.Windows.Forms.Control c in this.Controls)
+                {
+                    if (c.Left >= picGrafik.Right && (c is GroupBox || c is Button))
+                    {
+                        c.Visible = true;
+                    }
+                }
+
+                btnModMuhendis.Text = "TAKTİK MODA DÖN";
+                this.Text = "ATEL Karar Destek - [İLERİ MÜHENDİS MODU]";
+            }
+            else
+            {
+                foreach (System.Windows.Forms.Control c in this.Controls)
+                {
+                    if (c.Left >= picGrafik.Right && (c is GroupBox || c is Button))
+                    {
+                        if (c.Name != "btnModMuhendis" && c.Name != "btnSaldırı")
+                        {
+                            c.Visible = false;
+                        }
+                    }
+                }
+
+                btnModMuhendis.Text = "İLERİ MOD AKTİF";
+                this.Text = "ATEL Karar Destek - [TAKTİK (ASKERİ) MOD]";
+                this.AutoScroll = false;
+
+                int yeniGenislik = picGrafik.Right + 30;
+                if (btnSaldırı != null && btnSaldırı.Right > yeniGenislik) yeniGenislik = btnSaldırı.Right + 30;
+
+                int yeniYukseklik = this.ClientSize.Height;
+                if (rtbKonsol != null && rtbKonsol.Visible)
+                    yeniYukseklik = rtbKonsol.Bottom + 10;
+                else
+                    yeniYukseklik = btnModMuhendis.Bottom + 10;
+
+                this.ClientSize = new Size(yeniGenislik, yeniYukseklik);
+            }
+
+            this.CenterToScreen();
+        }
+
+        private async void OtopilotuTetikle()
+        {
+            await Task.Delay(1000);
+
+            if (!_isDeviceOpen)
+            {
+                rtbKonsol.AppendText("\n[OTOPİLOT] Cihaza otomatik bağlanılıyor...\n");
+                btnBaglan_Click(this, EventArgs.Empty);
+                await Task.Delay(1000);
+            }
+
+            if (_isDeviceOpen && !_isStreaming)
+            {
+                rtbKonsol.AppendText("[OTOPİLOT] Veri akışı başlatılıyor...\n");
+                btnOku_Click(this, EventArgs.Empty);
+                rtbKonsol.ScrollToCaret();
+            }
+        }
+
+        private async void DinamikParametreUygula()
+        {
+            if (!_isDeviceOpen || _islemeKilidi || _profilYukleniyor || _otomatikDegisim) return;
+            if (_dinamikGuncellemeBekliyor) return;
+
+            _dinamikGuncellemeBekliyor = true;
+            await Task.Delay(400); // Kullanıcı sayılarla oynamayı bitirene kadar bekle
+            _dinamikGuncellemeBekliyor = false;
+
+            btnBaglan_Click(this, EventArgs.Empty);
+        }
+
         private decimal BirimDonustur(decimal deger, string eskiBirim, string yeniBirim)
         {
             decimal gercekHz = deger;
-
             if (eskiBirim.Contains("kHz") || eskiBirim.Contains("kSps")) gercekHz = deger * 1000m;
             else if (eskiBirim.Contains("MHz") || eskiBirim.Contains("MSps")) gercekHz = deger * 1000000m;
             else if (eskiBirim.Contains("GHz")) gercekHz = deger * 1000000000m;
@@ -64,154 +220,211 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             return deger;
         }
 
-        private void btnBaglan_Click(object sender, EventArgs e)
+        private async void btnBaglan_Click(object sender, EventArgs e)
         {
-            ulong frekansCarpan = 1;
-            if (cmbBirim.Text == "kHz") frekansCarpan = 1000;
-            else if (cmbBirim.Text == "MHz") frekansCarpan = 1000000;
-            else if (cmbBirim.Text == "GHz") frekansCarpan = 1000000000;
-
-            uint orneklemeCarpan = 1;
-            if (cmbOrneklemeBirim.Text.Contains("kHz") || cmbOrneklemeBirim.Text.Contains("kSps")) orneklemeCarpan = 1000;
-            else if (cmbOrneklemeBirim.Text.Contains("MHz") || cmbOrneklemeBirim.Text.Contains("MSps")) orneklemeCarpan = 1000000;
-            else if (cmbOrneklemeBirim.Text.Contains("GHz")) orneklemeCarpan = 1000000000;
-
-            uint bantCarpan = 1;
-            if (cmbBantBirim.Text.Contains("kHz")) bantCarpan = 1000;
-            else if (cmbBantBirim.Text.Contains("MHz")) bantCarpan = 1000000;
-            else if (cmbBantBirim.Text.Contains("GHz")) bantCarpan = 1000000000;
-            //KIRPMA OLAYI
-            decimal kullaniciIstenenBant = numBantGenisligi.Value * (decimal)bantCarpan;
-            decimal kirpmaYuzdesi = numKirpmaYuzdesi.Value / 100m; // Arayüzdeki %30
+            if (_islemeKilidi) return;
+            _islemeKilidi = true;
 
             try
             {
-                if (numKirpmaYuzdesi != null) kirpmaYuzdesi = numKirpmaYuzdesi.Value / 100m;
-            }
-            catch { }
+                ulong frekansCarpan = 1;
+                if (cmbBirim.Text == "kHz") frekansCarpan = 1000;
+                else if (cmbBirim.Text == "MHz") frekansCarpan = 1000000;
+                else if (cmbBirim.Text == "GHz") frekansCarpan = 1000000000;
 
-            decimal ekstraBant = kullaniciIstenenBant * kirpmaYuzdesi;
+                uint orneklemeCarpan = 1;
+                if (cmbOrneklemeBirim.Text.Contains("k")) orneklemeCarpan = 1000;
+                else if (cmbOrneklemeBirim.Text.Contains("M")) orneklemeCarpan = 1000000;
+                else if (cmbOrneklemeBirim.Text.Contains("G")) orneklemeCarpan = 1000000000;
 
-            decimal geciciBant = kullaniciIstenenBant + ekstraBant;
-            decimal geciciFrekans = numFrekans.Value * (decimal)frekansCarpan;
-            decimal geciciOrnekleme = numOrnekleme.Value * (decimal)orneklemeCarpan;
-            if (geciciFrekans < 70000000m) geciciFrekans = 70000000m;
-            if (geciciFrekans > 6000000000m) geciciFrekans = 6000000000m;
+                uint bantCarpan = 1;
+                if (cmbBantBirim.Text.Contains("k")) bantCarpan = 1000;
+                else if (cmbBantBirim.Text.Contains("M")) bantCarpan = 1000000;
+                else if (cmbBantBirim.Text.Contains("G")) bantCarpan = 1000000000;
 
-            // BladeRF Donanım Sınırı Kontrolü
-            if (geciciBant > 56000000m)
-            {
-                geciciBant = 56000000m;
-                MessageBox.Show("Seçilen Bant Genişliği ve Kırpma oranı, donanımın maksimum sınırını (56 MHz) aşıyor! Donanım güvenliği için gizli bant genişliği limitlendi.", "Donanım Sınırı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            if (geciciBant < 1000000m) geciciBant = 1000000m;
+                decimal kullaniciFrekans = numFrekans.Value * (decimal)frekansCarpan;
+                decimal kullaniciOrnekleme = numOrnekleme.Value * (decimal)orneklemeCarpan;
+                decimal kullaniciBant = numBantGenisligi.Value * (decimal)bantCarpan;
 
-            decimal guvenliOrneklemeAltSiniri = geciciBant * 1.2m; // Örnekleme her zaman Banttan %20 büyük olmalı
-            if (geciciOrnekleme < guvenliOrneklemeAltSiniri)
-            {
-                geciciOrnekleme = guvenliOrneklemeAltSiniri;
-                if (geciciOrnekleme > 61440000m) // BladeRF maks örnekleme sınırı
+                decimal kirpmaYuzdesi = 0.30m;
+                try { if (numKirpmaYuzdesi != null) kirpmaYuzdesi = numKirpmaYuzdesi.Value / 100m; } catch { }
+
+                decimal donanimBant = kullaniciBant + (kullaniciBant * kirpmaYuzdesi);
+
+                decimal guvenliOrneklemeAltSiniri = donanimBant * 1.2m;
+
+                if (kullaniciOrnekleme < guvenliOrneklemeAltSiniri)
                 {
-                    geciciOrnekleme = 61440000m;
-                    geciciBant = geciciOrnekleme / 1.2m;
+                    kullaniciOrnekleme = guvenliOrneklemeAltSiniri;
+                }
+
+                if (kullaniciFrekans < 70000000m) kullaniciFrekans = 70000000m;
+                if (kullaniciFrekans > 6000000000m) kullaniciFrekans = 6000000000m;
+
+                if (donanimBant > 56000000m)
+                {
+                    donanimBant = 56000000m;
+
+                    kullaniciBant = donanimBant / (1m + kirpmaYuzdesi);
+                }
+
+                if (donanimBant < 1000000m)
+                {
+                    donanimBant = 1000000m;
+                    kullaniciBant = donanimBant / (1m + kirpmaYuzdesi);
+                }
+
+                if (kullaniciOrnekleme > 61440000m) kullaniciOrnekleme = 61440000m;
+
+                _otomatikDegisim = true;
+                numFrekans.Value = kullaniciFrekans / (decimal)frekansCarpan;
+                numBantGenisligi.Value = kullaniciBant / (decimal)bantCarpan; 
+                numOrnekleme.Value = kullaniciOrnekleme / (decimal)orneklemeCarpan;
+                _otomatikDegisim = false;
+
+                ulong gercekFrekans = (ulong)kullaniciFrekans;
+                uint gercekOrnekleme = (uint)kullaniciOrnekleme;
+                uint gercekBantGenisligi = (uint)donanimBant;
+
+
+                if (!_isDeviceOpen)
+                {
+                    int status = -1;
+                    try
+                    {
+                        status = BladeRFBridge.bladerf_open(out _devicePointer, IntPtr.Zero);
+                    }
+                    catch
+                    {
+                        return;
+                    }
+
+                    if (status == 0 && _devicePointer != IntPtr.Zero) _isDeviceOpen = true;
+                    else return;
+                }
+
+                if (_isDeviceOpen && _devicePointer != IntPtr.Zero)
+                {
+                    bool arkaPlandaAkiyordu = _isStreaming;
+
+                    if (arkaPlandaAkiyordu)
+                    {
+                        _isStreaming = false;
+                        while (_rxIpligiAktif) await Task.Delay(50);
+                        await Task.Delay(300);
+                    }
+
+                    try
+                    {
+                        int freqStatus = BladeRFBridge.bladerf_set_frequency(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekFrekans);
+                        BladeRFBridge.bladerf_set_sample_rate(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekOrnekleme, out uint actualSR);
+                        BladeRFBridge.bladerf_set_bandwidth(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekBantGenisligi, out uint actualBW);
+
+                        donanimGercekOrnekleme = actualSR;
+
+                        if (freqStatus == 0)
+                        {
+                            rtbKonsol.AppendText($"\n[DONANIM] Parametreler uygulandı! Yeni SR: {actualSR} Hz\n");
+                            rtbKonsol.ScrollToCaret();
+                        }
+                    }
+                    catch (DivideByZeroException)
+                    {
+                        rtbKonsol.AppendText("\n[UYARI] Cihaz FPGA saati toparlanıyor...\n");
+                    }
+                    catch (Exception ex)
+                    {
+                        rtbKonsol.AppendText($"\n[DONANIM HATASI] {ex.Message}\n");
+                    }
+
+                    if (arkaPlandaAkiyordu)
+                    {
+                        await Task.Delay(100);
+                        btnOku_Click(this, EventArgs.Empty);
+                    }
                 }
             }
-
-            numFrekans.Value = geciciFrekans / (decimal)frekansCarpan;
-            numOrnekleme.Value = geciciOrnekleme / (decimal)orneklemeCarpan;
-
-            ulong gercekFrekans = (ulong)geciciFrekans;
-            uint gercekOrnekleme = (uint)geciciOrnekleme;
-            uint gercekBantGenisligi = (uint)geciciBant;
-
-            if (!_isDeviceOpen)
+            finally
             {
-                btnBaglan.Enabled = false;
-                btnBaglan.Text = "Cihaz Aranıyor...";
-                Application.DoEvents();
-
-                int status = -1;
-
-                try
-                {
-                    status = BladeRFBridge.bladerf_open(out _devicePointer, IntPtr.Zero);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Bağlantı İstisnası: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    btnBaglan.Enabled = true;
-                    btnBaglan.Text = "Cihaza Bağlan";
-                    return;
-                }
-
-                if (status == 0 && _devicePointer != IntPtr.Zero)
-                {
-                    _isDeviceOpen = true;
-
-                    btnBaglan.BackColor = Color.Green;
-                    btnBaglan.Text = "Sistem Aktif (İzleme)";
-                    btnBaglan.Enabled = true;
-                    btnOku.Enabled = true;
-                }
-                else
-                {
-                    btnBaglan.Text = "Bağlantı Hatası!";
-                    btnBaglan.Enabled = true;
-                    MessageBox.Show($"Cihaz açılamadı! Hata Kodu: {status}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-            }
-
-            if (_isDeviceOpen)
-            {
-                if (_devicePointer == IntPtr.Zero)
-                {
-                    MessageBox.Show("Cihaz işaretçisi geçerli değil! Bağlantı koptu.", "Kritik Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    _isDeviceOpen = false;
-                    btnBaglan.Text = "Cihaza Bağlan";
-                    btnBaglan.BackColor = Color.White;
-                    return;
-                }
-
-                int freqStatus = BladeRFBridge.bladerf_set_frequency(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekFrekans);
-                if (gercekOrnekleme <= 0) gercekOrnekleme = 1000000;
-
-                BladeRFBridge.bladerf_set_sample_rate(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekOrnekleme, out uint actualSR);
-                BladeRFBridge.bladerf_set_bandwidth(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, gercekBantGenisligi, out uint actualBW);
-                if (freqStatus == 0)
-                {
-                    btnOku.Enabled = true;
-
-                    // Mesaj kutusu yerine kalıcı konsol logu yazdırıyoruz
-                    rtbKonsol.AppendText($"\n[DONANIM] Parametreler cihaza uygulandı!\n");
-                    rtbKonsol.AppendText($"[DONANIM] Gerçekleşen Örnekleme Hızı: {actualSR} Hz\n");
-                    rtbKonsol.ScrollToCaret();
-                }
-                else
-                {
-                    btnOku.Enabled = false;
-
-                    rtbKonsol.AppendText("\n[HATA] Parametreler cihaza uygulanamadı. Sınırları kontrol edin.\n");
-                    rtbKonsol.ScrollToCaret();
-                }
+                _islemeKilidi = false;
             }
         }
+
+        private async void btnOku_Click(object sender, EventArgs e)
+        {
+            if (!_isDeviceOpen) return;
+
+            if (_isStreaming)
+            {
+                _isStreaming = false;
+                rtbKonsol.AppendText("\n[SİSTEM] Spektrum izleme durduruldu...\n");
+                return;
+            }
+
+            _isStreaming = true;
+            uint num_samples = 8192;
+            rtbKonsol.AppendText("\n[SİSTEM] Canlı dinleme BAŞLATILDI...\n");
+            rtbKonsol.ScrollToCaret();
+
+            BladeRFBridge.bladerf_sync_config(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, BladeRFBridge.BLADERF_FORMAT_SC16_Q11, 16, num_samples, 8, 5000);
+            BladeRFBridge.bladerf_enable_module(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, true);
+
+            _rxIpligiAktif = true;
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    while (_isStreaming)
+                    {
+                        short[] iqData = new short[num_samples * 2];
+                        int rxStatus = BladeRFBridge.bladerf_sync_rx(_devicePointer, iqData, num_samples, IntPtr.Zero, 1000);
+
+                        if (rxStatus == 0 && _isStreaming)
+                        {
+                            sonIqHafizasi = iqData;
+                            GrafikGuncelle();
+                        }
+                        await Task.Delay(taramaGecikmesi);
+                    }
+                }
+                finally
+                {
+                    BladeRFBridge.bladerf_enable_module(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, false);
+                    _rxIpligiAktif = false;
+                }
+            });
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _isStreaming = false;
+            if (_isDeviceOpen && _devicePointer != IntPtr.Zero)
+            {
+                BladeRFBridge.bladerf_enable_module(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, false);
+                BladeRFBridge.bladerf_close(_devicePointer);
+            }
+            base.OnFormClosing(e);
+        }
+
         private void GrafikGuncelle()
         {
-            if (this.IsDisposed || !this.IsHandleCreated) return;
-            if (sonIqHafizasi == null) return;
+            if (this.IsDisposed || !this.IsHandleCreated || sonIqHafizasi == null) return;
+
+            // === 1. ZIRH: KARE ATLAMA (FRAME DROPPING) ===
+            // Eğer arayüz hala bir önceki veriyi çizmekle boğuşuyorsa, bu yeni veriyi atla! (Sistemin donmasını %100 engeller)
+            if (_cizimMesgul) return;
+            _cizimMesgul = true;
 
             int pictureBoxWidth = 0;
             int pictureBoxHeight = 0;
             bool alarmAktif = false;
             bool gurultuEngelleAktif = false;
             double dinamikTehditEsigi = -40.0;
-
             float max_dB = 20f;
             float min_dB = -120f;
             double gurultuEsigi = -80.0;
-
-            double kirpmaOrani = 0.10;
+            double gosterilecekBantHz = 20000000.0;
 
             try
             {
@@ -219,21 +432,31 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 {
                     pictureBoxWidth = picGrafik.Width;
                     pictureBoxHeight = picGrafik.Height;
-
                     if (chkAlarmAktif != null) alarmAktif = chkAlarmAktif.Checked;
                     if (chkGurultuEngelle != null) gurultuEngelleAktif = chkGurultuEngelle.Checked;
                     if (trbSquelch != null) dinamikTehditEsigi = trbSquelch.Value;
-
                     if (numYMax != null) max_dB = (float)numYMax.Value;
                     if (numYMin != null) min_dB = (float)numYMin.Value;
                     if (numGurultuEsigi != null) gurultuEsigi = (double)numGurultuEsigi.Value;
 
-                    if (numKirpmaYuzdesi != null) kirpmaOrani = (double)numKirpmaYuzdesi.Value / 100.0;
+                    double bCarpan = 1;
+                    if (cmbBantBirim.Text.Contains("k")) bCarpan = 1000;
+                    else if (cmbBantBirim.Text.Contains("M")) bCarpan = 1000000;
+                    else if (cmbBantBirim.Text.Contains("G")) bCarpan = 1000000000;
+                    gosterilecekBantHz = (double)numBantGenisligi.Value * bCarpan;
                 });
             }
-            catch { return; }
+            catch
+            {
+                _cizimMesgul = false;
+                return;
+            }
 
-            if (pictureBoxWidth <= 0 || pictureBoxHeight <= 0) return;
+            if (pictureBoxWidth <= 0 || pictureBoxHeight <= 0)
+            {
+                _cizimMesgul = false;
+                return;
+            }
 
             int num_samples = sonIqHafizasi.Length / 2;
             Bitmap tuval = new Bitmap(pictureBoxWidth, pictureBoxHeight);
@@ -243,8 +466,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             {
                 if (dcKalibrasyonTetiklendi)
                 {
-                    double i_toplam = 0;
-                    double q_toplam = 0;
+                    double i_toplam = 0, q_toplam = 0;
                     for (int k = 0; k < num_samples; k++)
                     {
                         i_toplam += sonIqHafizasi[k * 2];
@@ -252,35 +474,16 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     }
                     i_offset_degeri = i_toplam / num_samples;
                     q_offset_degeri = q_toplam / num_samples;
-
                     dcKalibrasyonTetiklendi = false;
                 }
 
                 double temiz_I = sonIqHafizasi[i * 2] - i_offset_degeri;
                 double temiz_Q = sonIqHafizasi[i * 2 + 1] - q_offset_degeri;
-
                 double window = 0.5 * (1 - Math.Cos(2 * Math.PI * i / (num_samples - 1)));
                 fftVerisi[i] = new System.Numerics.Complex(temiz_I * window, temiz_Q * window);
             }
 
             MathNet.Numerics.IntegralTransforms.Fourier.Forward(fftVerisi, MathNet.Numerics.IntegralTransforms.FourierOptions.Matlab);
-
-            /* DC SPIKE TEPE YÜKSELİŞ ENGELLEYİCİSİ
-            // Merkezdeki sahte kuleyi sıfırlayıp dipsiz çukur açmak yerine, 
-            // deliğin hemen dışındaki sağlıklı gürültüyü kopyalayıp üstünü örtüyoruz.
-            int dcEtkiAlani = 5;
-            System.Numerics.Complex saglikliSol = fftVerisi[num_samples - dcEtkiAlani - 1];
-            System.Numerics.Complex saglikliSag = fftVerisi[dcEtkiAlani + 1];
-
-            for (int k = 0; k <= dcEtkiAlani; k++)
-            {
-                fftVerisi[k] = saglikliSag;
-                if (k > 0)
-                {
-                    fftVerisi[num_samples - k] = saglikliSol;
-                }
-            }
-              ------------------------------------*/
 
             if (yumusatilmisFFT == null || yumusatilmisFFT.Length != pictureBoxWidth)
             {
@@ -295,7 +498,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             using (Graphics g = Graphics.FromImage(tuval))
             {
                 g.Clear(Color.Black);
-
                 using (Pen gridKalem = new Pen(Color.FromArgb(40, 40, 40), 1f))
                 using (Font eksenFontu = new Font("Arial", 8))
                 using (Font baslikFontu = new Font("Arial", 9, FontStyle.Bold))
@@ -317,8 +519,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                         g.DrawLine(gridKalem, 0, y, tuval.Width, y);
                         if (i > 0 && i < dikeyKareSayisi)
                         {
-                            float oran = y / (float)tuval.Height;
-                            float dbCizgi = max_dB - (oran * dB_farki);
+                            float dbCizgi = max_dB - ((y / tuval.Height) * dB_farki);
                             g.DrawString($"{dbCizgi:F0} dB", eksenFontu, yaziFircasi, 5, y - 15);
                         }
                     }
@@ -335,38 +536,17 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     int yariUzunluk = num_samples / 2;
                     PointF[] sinyalNoktalari = new PointF[tuval.Width];
 
-                    // --- DİNAMİK KIRPMA OKUMASI (GİZLİ KORUMA BANDI) ---
-                    // --- DİNAMİK VE DONANIMA BAĞLI KUSURSUZ ÖLÇEKLEME ---
-
-                    double gosterilecekBantHz = 20000000.0;
-                    this.Invoke((MethodInvoker)delegate
-                    {
-                        double bCarpan = 1;
-                        if (cmbBantBirim.Text.Contains("k")) bCarpan = 1000;
-                        else if (cmbBantBirim.Text.Contains("M")) bCarpan = 1000000;
-                        else if (cmbBantBirim.Text.Contains("G")) bCarpan = 1000000000;
-
-                        // Kullanıcının ekranda görmek istediği NET alan (Örn: 20 MHz)
-                        gosterilecekBantHz = (double)numBantGenisligi.Value * bCarpan;
-                    });
-
-                    // Donanımdan gelen gerçek hız (Eğer 0 ise varsayılan kullan)
-                    double gercekSR = donanimGercekOrnekleme > 0 ? (double)donanimGercekOrnekleme : 31200000.0;
-
-                    // Güvenlik: Ekranda istenen bant, donanımın verebildiği hızdan büyük olamaz
+                    double gercekSR = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : 31200000.0;
                     if (gosterilecekBantHz > gercekSR) gosterilecekBantHz = gercekSR;
 
-                    // Matematik: Toplam FFT genişliği (gercekSR) içinden, ekrana sığacak kısmı bul
                     double soldanKirpilacakOran = ((gercekSR - gosterilecekBantHz) / 2.0) / gercekSR;
                     double gosterilecekOran = gosterilecekBantHz / gercekSR;
 
                     double baslangicNoktasi = (num_samples - 1) * soldanKirpilacakOran;
                     double gosterilecekAralik = (num_samples - 1) * gosterilecekOran;
-                    // ----------------------------------------------------
 
                     for (int pixelX = 0; pixelX < tuval.Width; pixelX++)
                     {
-                        // Kenar kesme oranlaması
                         double i_baslangic = baslangicNoktasi + (((double)pixelX / (tuval.Width - 1)) * gosterilecekAralik);
                         double i_bitis = baslangicNoktasi + (((double)(pixelX + 1) / (tuval.Width - 1)) * gosterilecekAralik);
 
@@ -380,337 +560,218 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                         for (int i = idx_baslangic; i <= idx_bitis; i++)
                         {
                             int shiftedIndex = (i + yariUzunluk) % num_samples;
-                            double gercekGenlik = fftVerisi[shiftedIndex].Magnitude;
-                            double db = 20 * Math.Log10((gercekGenlik / 2048.0) + 1e-10);
+                            double db = 20 * Math.Log10((fftVerisi[shiftedIndex].Magnitude / 2048.0) + 1e-10);
                             if (db > maxDbPixelIcin) maxDbPixelIcin = db;
                         }
 
                         double islenecekDb = maxDbPixelIcin;
-
-                        if (gurultuEngelleAktif)
-                        {
-                            if (islenecekDb < gurultuEsigi)
-                            {
-                                islenecekDb = min_dB + 1.0;
-                            }
-                        }
+                        if (gurultuEngelleAktif && islenecekDb < gurultuEsigi) islenecekDb = min_dB + 1.0;
 
                         yumusatilmisFFT[pixelX] = (alpha * islenecekDb) + ((1 - alpha) * yumusatilmisFFT[pixelX]);
                         double filtrelenmisDb = yumusatilmisFFT[pixelX];
 
                         if (filtrelenmisDb > anlikMaksimumGenlik) anlikMaksimumGenlik = filtrelenmisDb;
 
-                        float cizilecekGuc = (float)filtrelenmisDb;
-                        float oran = (max_dB - cizilecekGuc) / dB_farki;
-                        float y = oran * tuval.Height;
-
+                        float y = ((max_dB - (float)filtrelenmisDb) / dB_farki) * tuval.Height;
                         if (y < 0) y = 0;
                         if (y > tuval.Height) y = tuval.Height;
 
                         sinyalNoktalari[pixelX] = new PointF(pixelX, y);
                     }
-
                     g.DrawLines(cizgiKalemi, sinyalNoktalari);
                 }
             }
 
             try
             {
-                this.Invoke((MethodInvoker)delegate
+                // === 2. ZIRH: ASENKRON ÇİZİM (BEGININVOKE) ===
+                // Invoke, çizim bitene kadar arka planı kilitlerdi. BeginInvoke sistemi kilitlemez, "Bunu müsait olunca çiz" der.
+                this.BeginInvoke((MethodInvoker)delegate
                 {
-                    if (picGrafik.Image != null) picGrafik.Image.Dispose();
-                    picGrafik.Image = tuval;
-
-                    if (alarmAktif)
+                    try
                     {
-                        if (anlikMaksimumGenlik > dinamikTehditEsigi)
+                        if (picGrafik.Image != null) picGrafik.Image.Dispose();
+                        picGrafik.Image = tuval;
+                        picGrafik.Invalidate();
+
+                        if (alarmAktif)
                         {
-                            tehditSayaci++;
-                            if (tehditSayaci >= GEREKLI_SUREKLILIK)
+                            if (anlikMaksimumGenlik > dinamikTehditEsigi)
                             {
-                                lblTehditDurumu.Text = $"⚠ TEHDİT TESPİT EDİLDİ (Güç: {anlikMaksimumGenlik:F1} dB | Eşik: {dinamikTehditEsigi} dB)";
-                                lblTehditDurumu.BackColor = Color.Red;
+                                tehditSayaci++;
+                                if (tehditSayaci >= GEREKLI_SUREKLILIK)
+                                {
+                                    lblTehditDurumu.Text = $"⚠ TEHDİT TESPİT EDİLDİ (Güç: {anlikMaksimumGenlik:F1} dB | Eşik: {dinamikTehditEsigi} dB)";
+                                    lblTehditDurumu.BackColor = Color.Red;
+                                    lblTehditDurumu.ForeColor = Color.White;
+
+                                    if (btnSaldırı != null)
+                                    {
+                                        btnSaldırı.Enabled = true;
+                                        btnSaldırı.BackColor = Color.Red;
+                                        btnSaldırı.ForeColor = Color.White;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                tehditSayaci = 0;
+                                lblTehditDurumu.Text = "TEMİZ - DİNLENİYOR...";
+                                lblTehditDurumu.BackColor = Color.DarkGreen;
                                 lblTehditDurumu.ForeColor = Color.White;
+
+                                if (btnSaldırı != null)
+                                {
+                                    btnSaldırı.Enabled = false;
+                                    btnSaldırı.BackColor = Color.Gray;
+                                }
                             }
                         }
                         else
                         {
                             tehditSayaci = 0;
-                            lblTehditDurumu.Text = "TEMİZ - SİNYAL BEKLENİYOR...";
-                            lblTehditDurumu.BackColor = Color.DarkGreen;
+                            lblTehditDurumu.Text = "ALARM SİSTEMİ DEVRE DIŞI";
+                            lblTehditDurumu.BackColor = Color.Gray;
                             lblTehditDurumu.ForeColor = Color.White;
+
+                            if (btnSaldırı != null)
+                            {
+                                btnSaldırı.Enabled = false;
+                                btnSaldırı.BackColor = Color.Gray;
+                            }
                         }
                     }
-                    else
+                    finally
                     {
-                        tehditSayaci = 0;
-                        lblTehditDurumu.Text = "ALARM SİSTEMİ DEVRE DIŞI";
-                        lblTehditDurumu.BackColor = Color.Gray;
-                        lblTehditDurumu.ForeColor = Color.White;
+                        _cizimMesgul = false;
                     }
                 });
             }
-            catch { return; }
+            catch
+            {
+                _cizimMesgul = false;
+            }
         }
 
-        private async void btnOku_Click(object sender, EventArgs e)
+        private double FareX_To_Frekans(int fareX, int width)
         {
-            if (!_isDeviceOpen)
+            double fCarpan = 1;
+            if (cmbBirim.Text == "kHz") fCarpan = 1000;
+            else if (cmbBirim.Text == "MHz") fCarpan = 1000000;
+            else if (cmbBirim.Text == "GHz") fCarpan = 1000000000;
+            double merkezFrekansHz = (double)numFrekans.Value * fCarpan;
+
+            double bCarpan = 1;
+            if (cmbBantBirim.Text.Contains("k")) bCarpan = 1000;
+            else if (cmbBantBirim.Text.Contains("M")) bCarpan = 1000000;
+            else if (cmbBantBirim.Text.Contains("G")) bCarpan = 1000000000;
+            double gosterilecekBantHz = (double)numBantGenisligi.Value * bCarpan;
+
+            double gercekSR = donanimGercekOrnekleme > 0 ? (double)donanimGercekOrnekleme : 31200000.0;
+            if (gosterilecekBantHz > gercekSR) gosterilecekBantHz = gercekSR;
+
+            double solKenarFrekans = merkezFrekansHz - (gosterilecekBantHz / 2.0);
+            double ekranOrani = (double)fareX / width;
+
+            return solKenarFrekans + (ekranOrani * gosterilecekBantHz);
+        }
+
+        private void chkMarkerAktif_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkMarkerAktif.Checked)
             {
-                MessageBox.Show("Önce cihazı bağlayın!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                double fCarpan = 1;
+                if (cmbBirim.Text == "kHz") fCarpan = 1000;
+                else if (cmbBirim.Text == "MHz") fCarpan = 1000000;
+                else if (cmbBirim.Text == "GHz") fCarpan = 1000000000;
+                hedefMarkerFrekansHz = (double)numFrekans.Value * fCarpan;
             }
+            picGrafik.Invalidate();
+        }
 
-            if (_isStreaming)
+        private void picGrafik_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (chkMarkerAktif.Checked && e.Button == MouseButtons.Left)
             {
-                _isStreaming = false;
-                btnOku.Text = "Hızlı Veri Oku";
-                btnOku.BackColor = Color.White;
-                rtbKonsol.AppendText("\n[SİSTEM] Spektrum izleme durduruldu.\n");
-                return;
+                isMarkerDragging = true;
+                hedefMarkerFrekansHz = FareX_To_Frekans(e.X, picGrafik.Width);
+                picGrafik.Invalidate();
             }
+        }
 
-            _isStreaming = true;
-            btnOku.Text = "Akışı Durdur";
-            btnOku.BackColor = Color.Red;
-
-            uint num_samples = 8192;
-
-            rtbKonsol.AppendText("\n[SİSTEM] Canlı spektrum dinleme (RX) BAŞLATILDI...\n");
-            rtbKonsol.ScrollToCaret();
-
-            BladeRFBridge.bladerf_sync_config(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, BladeRFBridge.BLADERF_FORMAT_SC16_Q11, 16, num_samples, 8, 5000);
-            BladeRFBridge.bladerf_enable_module(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, true);
-
-            await Task.Run(async () =>
+        private void picGrafik_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isMarkerDragging && chkMarkerAktif.Checked)
             {
-                while (_isStreaming)
+                hedefMarkerFrekansHz = FareX_To_Frekans(e.X, picGrafik.Width);
+                picGrafik.Invalidate();
+            }
+        }
+
+        private void picGrafik_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left) isMarkerDragging = false;
+        }
+
+        private void picGrafik_Paint(object sender, PaintEventArgs e)
+        {
+            if (chkMarkerAktif.Checked && hedefMarkerFrekansHz > 0)
+            {
+                double fCarpan = 1;
+                if (cmbBirim.Text == "kHz") fCarpan = 1000;
+                else if (cmbBirim.Text == "MHz") fCarpan = 1000000;
+                else if (cmbBirim.Text == "GHz") fCarpan = 1000000000;
+                double merkezFrekansHz = (double)numFrekans.Value * fCarpan;
+
+                double bCarpan = 1;
+                if (cmbBantBirim.Text.Contains("k")) bCarpan = 1000;
+                else if (cmbBantBirim.Text.Contains("M")) bCarpan = 1000000;
+                else if (cmbBantBirim.Text.Contains("G")) bCarpan = 1000000000;
+                double gosterilecekBantHz = (double)numBantGenisligi.Value * bCarpan;
+
+                double gercekSR = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : 31200000.0;
+                if (gosterilecekBantHz > gercekSR) gosterilecekBantHz = gercekSR;
+
+                double solKenarFrekans = merkezFrekansHz - (gosterilecekBantHz / 2.0);
+                double sagKenarFrekans = merkezFrekansHz + (gosterilecekBantHz / 2.0);
+
+                if (hedefMarkerFrekansHz >= solKenarFrekans && hedefMarkerFrekansHz <= sagKenarFrekans)
                 {
-                    short[] iqData = new short[num_samples * 2];
-                    int rxStatus = BladeRFBridge.bladerf_sync_rx(_devicePointer, iqData, num_samples, IntPtr.Zero, 1000);
+                    float oran = (float)((hedefMarkerFrekansHz - solKenarFrekans) / gosterilecekBantHz);
+                    float markerPixelX = oran * picGrafik.Width;
 
-                    if (rxStatus == 0 && _isStreaming)
+                    using (Pen markerKalemi = new Pen(Color.Yellow, 2f) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
+                    using (Font markerFontu = new Font("Consolas", 10, FontStyle.Bold))
                     {
-                        sonIqHafizasi = iqData;
-                        GrafikGuncelle();
+                        e.Graphics.DrawLine(markerKalemi, markerPixelX, 0, markerPixelX, picGrafik.Height);
+                        string markerYazi = $"▼ M1: {hedefMarkerFrekansHz / 1000000.0:F4} MHz";
+                        float yaziX = markerPixelX > picGrafik.Width - 120 ? markerPixelX - 130 : markerPixelX + 5;
+                        e.Graphics.DrawString(markerYazi, markerFontu, Brushes.Yellow, yaziX, 20);
                     }
-
-                    await Task.Delay(taramaGecikmesi);
-                }
-                BladeRFBridge.bladerf_enable_module(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, false);
-            });
-        }
-
-        protected override void OnFormClosing(FormClosingEventArgs e)
-        {
-            _isStreaming = false;
-            if (_isDeviceOpen && _devicePointer != IntPtr.Zero)
-            {
-                BladeRFBridge.bladerf_enable_module(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, false);
-                BladeRFBridge.bladerf_close(_devicePointer);
-            }
-            base.OnFormClosing(e);
-        }
-
-        private void cmbBirim_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(eskiFrekansBirim) || eskiFrekansBirim == cmbBirim.Text) return;
-
-            decimal yeniDeger = BirimDonustur(numFrekans.Value, eskiFrekansBirim, cmbBirim.Text);
-
-            if (yeniDeger > numFrekans.Maximum) yeniDeger = numFrekans.Maximum;
-            if (yeniDeger < numFrekans.Minimum) yeniDeger = numFrekans.Minimum;
-
-            numFrekans.Value = yeniDeger;
-            eskiFrekansBirim = cmbBirim.Text;
-        }
-
-        private void cmbOrneklemeBirim_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(eskiOrneklemeBirim) || eskiOrneklemeBirim == cmbOrneklemeBirim.Text) return;
-
-            decimal yeniDeger = BirimDonustur(numOrnekleme.Value, eskiOrneklemeBirim, cmbOrneklemeBirim.Text);
-
-            if (yeniDeger > numOrnekleme.Maximum) yeniDeger = numOrnekleme.Maximum;
-            if (yeniDeger < numOrnekleme.Minimum) yeniDeger = numOrnekleme.Minimum;
-
-            numOrnekleme.Value = yeniDeger;
-            eskiOrneklemeBirim = cmbOrneklemeBirim.Text;
-        }
-
-        private void cmbBantBirim_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(eskiBantBirim) || eskiBantBirim == cmbBantBirim.Text) return;
-
-            decimal yeniDeger = BirimDonustur(numBantGenisligi.Value, eskiBantBirim, cmbBantBirim.Text);
-
-            if (yeniDeger > numBantGenisligi.Maximum) yeniDeger = numBantGenisligi.Maximum;
-            if (yeniDeger < numBantGenisligi.Minimum) yeniDeger = numBantGenisligi.Minimum;
-
-            numBantGenisligi.Value = yeniDeger;
-            eskiBantBirim = cmbBantBirim.Text;
-        }
-
-        private void trbYumusatma_Scroll(object sender, EventArgs e)
-        {
-            alpha = trbYumusatma.Value / 100.0;
-
-            if (lblYumusatmaDegeri != null)
-            {
-                lblYumusatmaDegeri.Text = $"%{trbYumusatma.Value}";
-            }
-        }
-
-        private void rdoIzlemeModu_CheckedChanged(object sender, EventArgs e)
-        {
-            if (rdoIzlemeModu.Checked)
-            {
-                rtbKonsol.AppendText("\n[SİSTEM] İzleme Modu Aktif. Sadece dinleme (RX) yapılıyor.\n");
-                rtbKonsol.ScrollToCaret();
-            }
-        }
-
-        private void btnDcKalibrasyon_Click(object sender, EventArgs e)
-        {
-            dcKalibrasyonTetiklendi = true;
-            MessageBox.Show("DC Offset Kalibrasyonu alındı. Merkezdeki donanım gürültüsü sıfırlandı!", "Kalibrasyon Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
-
-        private string TehditSiniflandir()
-        {
-            decimal frekansMhz = numFrekans.Value;
-            if (cmbBirim.Text == "GHz") frekansMhz *= 1000m;
-            else if (cmbBirim.Text == "kHz") frekansMhz /= 1000m;
-
-            if (frekansMhz >= 2400m && frekansMhz <= 2500m)
-                return "DRONE / FPV / Wİ-Fİ SİNYALİ";
-
-            if (frekansMhz >= 430m && frekansMhz <= 440m)
-                return "UHF TAKTİK TELSİZ";
-
-            if (frekansMhz >= 800m && frekansMhz <= 1900m)
-                return "GSM / LTE HÜCRESEL AĞ (TELEFON)";
-
-            return "BİLİNMEYEN RF AKTİVİTESİ";
-        }
-
-        private void rdoTaarruzModu_CheckedChanged(object sender, EventArgs e)
-        {
-            if (rdoTaarruzModu.Checked)
-            {
-                rtbKonsol.SelectionColor = Color.Red;
-                rtbKonsol.AppendText("\n[DİKKAT] Taarruz modu harici terminal üzerinden yönetilecektir.\n");
-                rtbKonsol.SelectionColor = rtbKonsol.ForeColor;
-                rtbKonsol.ScrollToCaret();
-            }
-        }
-
-        private void rdoTestModu_CheckedChanged(object sender, EventArgs e)
-        {
-            if (rdoTestModu.Checked)
-            {
-                rtbKonsol.AppendText("\n[SİSTEM] Dahili Test (Loopback) Modu Aktif.\n");
-                if (_isDeviceOpen && _devicePointer != IntPtr.Zero)
-                {
-                    BladeRFBridge.bladerf_set_loopback(_devicePointer, 2);
-                    rtbKonsol.AppendText("[DONANIM] Donanımsal Loopback şalteri kapatıldı.\n");
-                }
-                rtbKonsol.ScrollToCaret();
-            }
-            else
-            {
-                if (_isDeviceOpen && _devicePointer != IntPtr.Zero)
-                {
-                    BladeRFBridge.bladerf_set_loopback(_devicePointer, 0);
-                    rtbKonsol.AppendText("[DONANIM] Loopback devreden çıkarıldı.\n");
                 }
             }
-        }
-
-        private void trbRxKazanci_Scroll(object sender, EventArgs e)
-        {
-            lblRxKazanciDegeri.Text = trbRxKazanci.Value.ToString() + " dB";
-        }
-
-        private void chkAGC_CheckedChanged(object sender, EventArgs e)
-        {
-            if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
-
-            if (chkAGC.Checked)
-            {
-                // 2 = BLADERF_GAIN_FASTRAK (Hızlı Otomatik AGC Modu)
-                int status = BladeRFBridge.bladerf_set_gain_mode(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, 2);
-
-                if (status == 0)
-                {
-                    rtbKonsol.AppendText("[DONANIM] AGC (Otomatik Kazanç) AKTİF.\n");
-                    trbRxKazanci.Enabled = false;
-                }
-                else
-                {
-                    rtbKonsol.AppendText($"[HATA] AGC açılamadı! (Kod: {status})\n");
-                    chkAGC.Checked = false;
-                }
-            }
-            else
-            {
-                // 1 = BLADERF_GAIN_MGC (Manuel Kazanç Modu)
-                BladeRFBridge.bladerf_set_gain_mode(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, 1);
-                rtbKonsol.AppendText("[DONANIM] AGC KAPATILDI. Manuel moda dönüldü.\n");
-
-                trbRxKazanci.Enabled = true;
-
-                // AGC kapanınca cihaz havada kalmasın diye mevcut sürgü değerini zorla uygula
-                int guncelKazanc = trbRxKazanci.Value;
-                BladeRFBridge.bladerf_set_gain(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, guncelKazanc);
-                rtbKonsol.AppendText($"[DONANIM] Kazanç senkronize edildi: {guncelKazanc} dB.\n");
-            }
-
-            rtbKonsol.ScrollToCaret();
-        }
-
-        private void chkBiasTee_CheckedChanged(object sender, EventArgs e)
-        {
-            if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
-            bool aktifMi = chkBiasTee.Checked;
-            BladeRFBridge.bladerf_set_bias_tee(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, aktifMi);
-            if (aktifMi)
-            {
-                rtbKonsol.SelectionColor = Color.Orange;
-                rtbKonsol.AppendText("[DİKKAT] Bias-Tee AKTİF! 5V güç basılıyor.\n");
-                rtbKonsol.SelectionColor = rtbKonsol.ForeColor;
-            }
-            else
-            {
-                rtbKonsol.AppendText("[SİSTEM] Bias-Tee kapatıldı.\n");
-            }
-            rtbKonsol.ScrollToCaret();
         }
 
         private void cmbHedefProfilleri_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (cmbHedefProfilleri.SelectedItem == null) return;
-
-            string secilenProfil = cmbHedefProfilleri.Text;
+            if (cmbHedefProfilleri.SelectedItem == null || cmbHedefProfilleri.SelectedIndex == -1) return;
             string secilenItem = cmbHedefProfilleri.SelectedItem.ToString() ?? "";
+            if (string.IsNullOrEmpty(secilenItem) || secilenItem == "-----") return;
 
-            if (string.IsNullOrEmpty(secilenItem)) return;
+            _profilYukleniyor = true;
 
             if (secilenItem == "➕ Yeni Özel Ayar Kaydet...")
             {
                 string yeniProfilAdi = "Özel Profil " + (ozelProfiller.Count + 1).ToString();
-
                 double guncelFrekans = Convert.ToDouble(numFrekans.Value);
                 double guncelOrnekleme = Convert.ToDouble(numOrnekleme.Value);
                 double guncelBant = Convert.ToDouble(numBantGenisligi.Value);
+                double guncelSquelch = trbSquelch.Value;
 
-                ozelProfiller.Add(yeniProfilAdi, new double[] { guncelFrekans, guncelOrnekleme, guncelBant });
-
-                int sonSira = cmbHedefProfilleri.Items.Count - 1;
-                cmbHedefProfilleri.Items.Insert(sonSira, yeniProfilAdi);
+                ozelProfiller.Add(yeniProfilAdi, new double[] { guncelFrekans, guncelOrnekleme, guncelBant, guncelSquelch });
+                cmbHedefProfilleri.Items.Insert(cmbHedefProfilleri.Items.Count - 1, yeniProfilAdi);
                 cmbHedefProfilleri.SelectedItem = yeniProfilAdi;
-
-                MessageBox.Show($"{yeniProfilAdi} başarıyla kaydedildi!\nFrekans: {guncelFrekans} GHz\nÖrnekleme: {guncelOrnekleme} MSps", "Profil Kaydedildi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"{yeniProfilAdi} Kaydedildi!", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else if (ozelProfiller.ContainsKey(secilenItem))
             {
@@ -718,106 +779,110 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 numFrekans.Value = Convert.ToDecimal(kayitliAyarlar[0]);
                 numOrnekleme.Value = Convert.ToDecimal(kayitliAyarlar[1]);
                 numBantGenisligi.Value = Convert.ToDecimal(kayitliAyarlar[2]);
+                if (kayitliAyarlar.Length > 3) trbSquelch.Value = (int)kayitliAyarlar[3];
+                rtbKonsol.AppendText($"\n[SİSTEM] {secilenItem} yüklendi.\n");
             }
-            else if (secilenProfil.Contains("Drone"))
+            else if (secilenItem.Contains("Drone"))
             {
-                eskiFrekansBirim = "GHz";
                 cmbBirim.SelectedIndex = cmbBirim.FindString("GHz");
                 numFrekans.Value = 2.4m;
-
-                eskiOrneklemeBirim = "MSps";
-                int orneklemeIndex = cmbOrneklemeBirim.FindString("MSps");
-                if (orneklemeIndex == -1) orneklemeIndex = cmbOrneklemeBirim.FindString("MHz");
-                cmbOrneklemeBirim.SelectedIndex = orneklemeIndex;
+                cmbOrneklemeBirim.SelectedIndex = cmbOrneklemeBirim.FindString("MSps") != -1 ? cmbOrneklemeBirim.FindString("MSps") : cmbOrneklemeBirim.FindString("MHz");
                 numOrnekleme.Value = 22m;
-
-                eskiBantBirim = "MHz";
                 cmbBantBirim.SelectedIndex = cmbBantBirim.FindString("MHz");
                 numBantGenisligi.Value = 20m;
-
-                rtbKonsol.AppendText("\n[SİSTEM] Taktik Profil Yüklendi: DRONE / FPV (2.4 GHz Ağı)\n");
+                rtbKonsol.AppendText("\n[SİSTEM] Taktik Profil: DRONE (2.4 GHz)\n");
             }
-            else if (secilenProfil.Contains("Telsiz"))
+            else if (secilenItem.Contains("Telsiz"))
             {
-                eskiFrekansBirim = "MHz";
                 cmbBirim.SelectedIndex = cmbBirim.FindString("MHz");
                 numFrekans.Value = 433m;
-
-                eskiOrneklemeBirim = "MSps";
-                int orneklemeIndex = cmbOrneklemeBirim.FindString("MSps");
-                if (orneklemeIndex == -1) orneklemeIndex = cmbOrneklemeBirim.FindString("MHz");
-                cmbOrneklemeBirim.SelectedIndex = orneklemeIndex;
+                cmbOrneklemeBirim.SelectedIndex = cmbOrneklemeBirim.FindString("MSps") != -1 ? cmbOrneklemeBirim.FindString("MSps") : cmbOrneklemeBirim.FindString("MHz");
                 numOrnekleme.Value = 2.5m;
-
-                eskiBantBirim = "MHz";
                 cmbBantBirim.SelectedIndex = cmbBantBirim.FindString("MHz");
                 numBantGenisligi.Value = 2m;
-
-                rtbKonsol.AppendText("\n[SİSTEM] Taktik Profil Yüklendi: TAKTİK TELSİZ (433 MHz)\n");
+                rtbKonsol.AppendText("\n[SİSTEM] Taktik Profil: TELSİZ (433 MHz)\n");
             }
-            else if (secilenProfil.Contains("Telefon"))
+            else if (secilenItem.Contains("Telefon"))
             {
-                eskiFrekansBirim = "MHz";
                 cmbBirim.SelectedIndex = cmbBirim.FindString("MHz");
                 numFrekans.Value = 1750m;
-
-                eskiOrneklemeBirim = "MSps";
-                int orneklemeIndex = cmbOrneklemeBirim.FindString("MSps");
-                if (orneklemeIndex == -1) orneklemeIndex = cmbOrneklemeBirim.FindString("MHz");
-                cmbOrneklemeBirim.SelectedIndex = orneklemeIndex;
+                cmbOrneklemeBirim.SelectedIndex = cmbOrneklemeBirim.FindString("MSps") != -1 ? cmbOrneklemeBirim.FindString("MSps") : cmbOrneklemeBirim.FindString("MHz");
                 numOrnekleme.Value = 2m;
-
-                eskiBantBirim = "MHz";
                 cmbBantBirim.SelectedIndex = cmbBantBirim.FindString("MHz");
                 numBantGenisligi.Value = 1.5m;
-
-                rtbKonsol.AppendText("\n[SİSTEM] Taktik Profil Yüklendi: GSM / LTE TELEFON SİNYALİ\n");
+                rtbKonsol.AppendText("\n[SİSTEM] Taktik Profil: GSM / LTE TELEFON\n");
             }
 
             rtbKonsol.ScrollToCaret();
+            _profilYukleniyor = false;
+
+            if (_isDeviceOpen) btnBaglan_Click(this, EventArgs.Empty);
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void btnSaldırı_Click(object sender, EventArgs e)
         {
-            this.Text = "ATEL Akıllı Jammer Karar Destek Arayüzü";
+            rtbKonsol.AppendText("\n[DİKKAT] TAARRUZ SİNYALİ BAŞLATILDI!\n");
+            rtbKonsol.ScrollToCaret();
+        }
 
-            cmbHedefProfilleri.Items.Add("-----");
-            cmbHedefProfilleri.Items.Add("➕ Yeni Özel Ayar Kaydet...");
+        private void cmbBirim_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(eskiFrekansBirim) || eskiFrekansBirim == cmbBirim.Text) return;
+            decimal yeniDeger = BirimDonustur(numFrekans.Value, eskiFrekansBirim, cmbBirim.Text);
+            if (yeniDeger > numFrekans.Maximum) yeniDeger = numFrekans.Maximum;
+            if (yeniDeger < numFrekans.Minimum) yeniDeger = numFrekans.Minimum;
+            numFrekans.Value = yeniDeger;
+            eskiFrekansBirim = cmbBirim.Text;
+            DinamikParametreUygula();
+        }
 
-            if (lblSqulechTehtid != null) lblSqulechTehtid.Text = $"%{trbSquelch.Value}";
+        private void cmbOrneklemeBirim_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(eskiOrneklemeBirim) || eskiOrneklemeBirim == cmbOrneklemeBirim.Text) return;
+            decimal yeniDeger = BirimDonustur(numOrnekleme.Value, eskiOrneklemeBirim, cmbOrneklemeBirim.Text);
+            if (yeniDeger > numOrnekleme.Maximum) yeniDeger = numOrnekleme.Maximum;
+            if (yeniDeger < numOrnekleme.Minimum) yeniDeger = numOrnekleme.Minimum;
+            numOrnekleme.Value = yeniDeger;
+            eskiOrneklemeBirim = cmbOrneklemeBirim.Text;
+            DinamikParametreUygula();
+        }
+
+        private void cmbBantBirim_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(eskiBantBirim) || eskiBantBirim == cmbBantBirim.Text) return;
+            decimal yeniDeger = BirimDonustur(numBantGenisligi.Value, eskiBantBirim, cmbBantBirim.Text);
+            if (yeniDeger > numBantGenisligi.Maximum) yeniDeger = numBantGenisligi.Maximum;
+            if (yeniDeger < numBantGenisligi.Minimum) yeniDeger = numBantGenisligi.Minimum;
+            numBantGenisligi.Value = yeniDeger;
+            eskiBantBirim = cmbBantBirim.Text;
+            DinamikParametreUygula();
+        }
+
+        private void trbYumusatma_Scroll(object sender, EventArgs e)
+        {
+            alpha = trbYumusatma.Value / 100.0;
             if (lblYumusatmaDegeri != null) lblYumusatmaDegeri.Text = $"%{trbYumusatma.Value}";
+        }
+
+        private void trbTaramaHizi_Scroll(object sender, EventArgs e)
+        {
+            taramaGecikmesi = trbTaramaHizi.Value;
             if (lblTaramaHiziDegeri != null) lblTaramaHiziDegeri.Text = $"{trbTaramaHizi.Value} ms";
         }
 
-        private void grpDonanim_Enter(object sender, EventArgs e) { }
-        private void label5_Click(object sender, EventArgs e) { }
-        private void label6_Click(object sender, EventArgs e) { }
-
         private void trbSquelch_Scroll(object sender, EventArgs e)
         {
-            GrafikGuncelle();
-
-            if (lblSqulechTehtid != null)
-            {
-                lblSqulechTehtid.Text = $"%{trbSquelch.Value}";
-            }
+            if (lblSqulechTehtid != null) lblSqulechTehtid.Text = $"%{trbSquelch.Value}";
         }
-
-        private void picGrafik_Click(object sender, EventArgs e) { }
-        private void lblTehditDurumu_Click(object sender, EventArgs e) { }
-        private void numFrekans_ValueChanged(object sender, EventArgs e) { }
 
         private void numYMax_ValueChanged(object sender, EventArgs e)
         {
             if (numYMin == null || numYMax == null) return;
-
             if (numYMax.Value <= numYMin.Value)
             {
                 decimal guvenliDeger = numYMax.Value - 10;
-
                 if (guvenliDeger < numYMin.Minimum) guvenliDeger = numYMin.Minimum;
                 if (guvenliDeger > numYMin.Maximum) guvenliDeger = numYMin.Maximum;
-
                 numYMin.Value = guvenliDeger;
             }
         }
@@ -825,58 +890,101 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private void numYMin_ValueChanged(object sender, EventArgs e)
         {
             if (numYMin == null || numYMax == null) return;
-
             if (numYMin.Value >= numYMax.Value)
             {
                 decimal guvenliDeger = numYMin.Value + 10;
-
                 if (guvenliDeger > numYMax.Maximum) guvenliDeger = numYMax.Maximum;
                 if (guvenliDeger < numYMax.Minimum) guvenliDeger = numYMax.Minimum;
-
                 numYMax.Value = guvenliDeger;
             }
         }
 
-        private void trbTaramaHizi_Scroll(object sender, EventArgs e)
+        private void chkAGC_CheckedChanged(object sender, EventArgs e)
         {
-            taramaGecikmesi = trbTaramaHizi.Value;
-
-            if (lblTaramaHiziDegeri != null)
+            if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
+            if (chkAGC.Checked)
             {
-                lblTaramaHiziDegeri.Text = $"{trbTaramaHizi.Value} ms";
+                BladeRFBridge.bladerf_set_gain_mode(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, 2);
+                trbRxKazanci.Enabled = false;
             }
-        }
-
-        private void lblOlcekDegeri_Click(object sender, EventArgs e) { }
-        private void lblYumusatmaDegeri_Click(object sender, EventArgs e) { }
-        private void label8_Click(object sender, EventArgs e) { }
-
-        private void lblRxKazanciDegeri_Click(object sender, EventArgs e)
-        {
-
+            else
+            {
+                BladeRFBridge.bladerf_set_gain_mode(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, 1);
+                trbRxKazanci.Enabled = true;
+                BladeRFBridge.bladerf_set_gain(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, trbRxKazanci.Value);
+            }
         }
 
         private void trbRxKazanci_MouseUp(object sender, MouseEventArgs e)
         {
             if (!_isDeviceOpen || _devicePointer == IntPtr.Zero || chkAGC.Checked) return;
-
-            int yeniKazanc = trbRxKazanci.Value;
-            int status = BladeRFBridge.bladerf_set_gain(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, yeniKazanc);
-
-            if (status == 0)
-                rtbKonsol.AppendText($"[DONANIM] RX Kazancı {yeniKazanc} dB olarak ayarlandı.\n");
-            else
-                rtbKonsol.AppendText($"[HATA] Kazanç uygulanamadı! Kodu: {status}\n");
+            BladeRFBridge.bladerf_set_gain(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, trbRxKazanci.Value);
         }
 
-        private void numKirpmaYuzdesi_ValueChanged(object sender, EventArgs e)
+        private void trbRxKazanci_Scroll(object sender, EventArgs e)
         {
-           
+            if (lblRxKazanciDegeri != null) lblRxKazanciDegeri.Text = trbRxKazanci.Value.ToString() + " dB";
         }
 
-        private void lblKırpılmayanAlan_Click(object sender, EventArgs e)
+        private void chkBiasTee_CheckedChanged(object sender, EventArgs e)
         {
+            if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
+            BladeRFBridge.bladerf_set_bias_tee(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, chkBiasTee.Checked);
+        }
 
+        private void rdoIzlemeModu_CheckedChanged(object sender, EventArgs e) { }
+        private void rdoTaarruzModu_CheckedChanged(object sender, EventArgs e) { }
+
+        private void rdoTestModu_CheckedChanged(object sender, EventArgs e)
+        {
+            if (_isDeviceOpen && _devicePointer != IntPtr.Zero)
+            {
+                BladeRFBridge.bladerf_set_loopback(_devicePointer, rdoTestModu.Checked ? 2 : 0);
+            }
+        }
+
+        private void btnDcKalibrasyon_Click(object sender, EventArgs e)
+        {
+            dcKalibrasyonTetiklendi = true;
+        }
+
+        // Hata almamak için eski tasarım bağlantıları korunmuştur
+        private void numFrekans_ValueChanged(object sender, EventArgs e) { }
+        private void grpDonanim_Enter(object sender, EventArgs e) { }
+        private void label5_Click(object sender, EventArgs e) { }
+        private void label6_Click(object sender, EventArgs e) { }
+        private void picGrafik_Click(object sender, EventArgs e) { }
+        private void lblTehditDurumu_Click(object sender, EventArgs e) { }
+        private void lblOlcekDegeri_Click(object sender, EventArgs e) { }
+        private void lblYumusatmaDegeri_Click(object sender, EventArgs e) { }
+        private void label8_Click(object sender, EventArgs e) { }
+        private void lblRxKazanciDegeri_Click(object sender, EventArgs e) { }
+        private void numKirpmaYuzdesi_ValueChanged(object sender, EventArgs e) { }
+        private void lblKırpılmayanAlan_Click(object sender, EventArgs e) { }
+        private void lblSqulechTehtid_Click(object sender, EventArgs e) { }
+        private void pnlAnaArayuz_Paint(object sender, PaintEventArgs e) { }
+        private void label11_Click(object sender, EventArgs e) { }
+        private void lblTaramaHiziDegeri_Click(object sender, EventArgs e) { }
+        private void label4_Click(object sender, EventArgs e) { }
+        private void label1_Click(object sender, EventArgs e) { }
+        private void grpGelismisAyarlar_Enter(object sender, EventArgs e) { }
+
+        private void btnSaldırı_Click_1(object sender, EventArgs e)
+        {/*rtbKonsol.AppendText("\n[DİKKAT] TAARRUZ SİNYALİ BAŞLATILDI!\n");
+            rtbKonsol.ScrollToCaret();
+
+            try
+            {
+                string muzikYolu = @"C:\Users\kayay\OneDrive\Masaüstü\ATEL SAVUNMA STAJ\saldırıbaslat.wav";
+
+                System.Media.SoundPlayer oynatici = new System.Media.SoundPlayer(muzikYolu);
+                oynatici.PlayLooping();
+            }
+            catch (Exception ex)
+            {
+                rtbKonsol.AppendText($"\n[HATA] Ses dosyası oynatılamadı: {ex.Message}\n");
+                rtbKonsol.ScrollToCaret();
+            }*/
         }
     }
 }
