@@ -1,0 +1,450 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Akıllı_Jammer_Karar_Destek_Arayüzü.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="BufferBoyutu" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">8192</Value>
+    </Setting>
+    <Setting Name="SinyalGenligi" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">30000</Value>
+    </Setting>
+    <Setting Name="KareDalgaPeriyodu" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">64</Value>
+    </Setting>
+    <Setting Name="DahiliTestKazanci" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="DonanimZamanAsimi" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="TxBufferBoyutu" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">8192</Value>
+    </Setting>
+    <Setting Name="TxZamanAsimiMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="RxBufferBoyutu" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">8192</Value>
+    </Setting>
+    <Setting Name="RxNumBuffers" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">16</Value>
+    </Setting>
+    <Setting Name="RxNumTransfers" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">8</Value>
+    </Setting>
+    <Setting Name="RxZamanAsimiMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">500</Value>
+    </Setting>
+    <Setting Name="HataBeklemeMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">5</Value>
+    </Setting>
+    <Setting Name="MinFrekansHz" Type="System.Int64" Scope="Application">
+      <Value Profile="(Default)">70000000</Value>
+    </Setting>
+    <Setting Name="MaxFrekansHz" Type="System.Int64" Scope="Application">
+      <Value Profile="(Default)">6000000000</Value>
+    </Setting>
+    <Setting Name="MaxOrneklemeHz" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">61440000</Value>
+    </Setting>
+    <Setting Name="MinBantGenisligi" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1000000</Value>
+    </Setting>
+    <Setting Name="MaxBantGenisligi" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">56000000</Value>
+    </Setting>
+    <Setting Name="BantKirpmaYuzdesi" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">0.30</Value>
+    </Setting>
+    <Setting Name="TxRxGecisSuresiMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">150</Value>
+    </Setting>
+    <Setting Name="LOG_BAGLANIYOR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM] Cihaza bağlanılıyor...</Value>
+    </Setting>
+    <Setting Name="LOG_CANLI_DINLEME" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM] Canlı dinleme BAŞLATILDI...</Value>
+    </Setting>
+    <Setting Name="UI_BTN_SINYALI_KES" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SİNYALİ KES</Value>
+    </Setting>
+    <Setting Name="UI_MOD_TAARRUZ" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DİKKAT: TAARRUZ MODU SEÇİLDİ (SİLAH KURULU)</Value>
+    </Setting>
+    <Setting Name="ERR_CIHAZ_BULUNAMADI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Cihaz bulunamadı veya açılamadı! USB bağlantısını kontrol edin. </Value>
+    </Setting>
+    <Setting Name="STATUS_MOD_DINLEME" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">TEMİZ - DİNLENİYOR... </Value>
+    </Setting>
+    <Setting Name="STATUS_MOD_TAARRUZ" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DİKKAT: TAARRUZ MODU SEÇİLDİ (SİLAH KURULU)</Value>
+    </Setting>
+    <Setting Name="STATUS_MOD_TEST" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">GÜVENLİ MOD: DAHİLİ TEST (LOOPBACK) AKTİF</Value>
+    </Setting>
+    <Setting Name="STATUS_ALARM_KAPALI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ALARM SİSTEMİ DEVRE DIŞI</Value>
+    </Setting>
+    <Setting Name="UI_BTN_SALDIRI_BASLAT" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SALDIRI BAŞLAT</Value>
+    </Setting>
+    <Setting Name="UI_BTN_TEST_GONDER" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">TEST SİNYALİ GÖNDER</Value>
+    </Setting>
+    <Setting Name="UI_BTN_BAGLAN" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">🔌</Value>
+    </Setting>
+    <Setting Name="UI_BTN_DURDUR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">⏹</Value>
+    </Setting>
+    <Setting Name="UI_BTN_DEVAM" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">▶</Value>
+    </Setting>
+    <Setting Name="UI_PROFIL_YENI_KAYDET" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">➕ Yeni Özel Ayar Kaydet...</Value>
+    </Setting>
+    <Setting Name="MENU_DIL_SECIMI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Dil Seçimi (Language)</Value>
+    </Setting>
+    <Setting Name="MENU_TEMA_SECIMI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Tema Seçimi (Theme)</Value>
+    </Setting>
+    <Setting Name="MENU_KLASOR_AC" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Ayar Klasörünü Aç (Dosyaları Buraya Atın)</Value>
+    </Setting>
+    <Setting Name="MENU_DOSYA_YOK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Dosya bulunamadı!</Value>
+    </Setting>
+    <Setting Name="LOG_TX_AKTIF" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[TX AKTİF] Sistem üzerinden fiziksel sinyal gönderiliyor...</Value>
+    </Setting>
+    <Setting Name="LOG_TX_KAPALI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[TX KAPATILDI] Gönderim kesildi. Beklemede.</Value>
+    </Setting>
+    <Setting Name="LOG_PARAMETRE_UYGULANDI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[DONANIM] Parametreler uygulandı! Yeni SR:</Value>
+    </Setting>
+    <Setting Name="LOG_PROFIL_YUKLENDI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">yüklendi.</Value>
+    </Setting>
+    <Setting Name="LOG_PROFIL_DRONE" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM] Taktik Profil: DRONE (2.4 GHz)</Value>
+    </Setting>
+    <Setting Name="LOG_PROFIL_TELSIZ" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM] Taktik Profil: TELSİZ (433 MHz)</Value>
+    </Setting>
+    <Setting Name="LOG_PROFIL_TELEFON" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM] Taktik Profil: GSM / LTE TELEFON</Value>
+    </Setting>
+    <Setting Name="ERR_DONANIM_HATASI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[DONANIM HATASI]</Value>
+    </Setting>
+    <Setting Name="ERR_TX_HATASI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">TX Hatası:</Value>
+    </Setting>
+    <Setting Name="ERR_GECIS_HATASI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Geçiş hatası:</Value>
+    </Setting>
+    <Setting Name="MSG_YETKI_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Yetki Reddedildi</Value>
+    </Setting>
+    <Setting Name="MSG_YETKI_METIN" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Taktik (Askeri) modda sisteme yeni ayar kaydedilemez!\nLütfen İleri Mühendis Moduna geçiş yapın.</Value>
+    </Setting>
+    <Setting Name="MSG_PROFIL_ADI_GIRIN" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Yeni Profil Adını Girin:</Value>
+    </Setting>
+    <Setting Name="MSG_PROFIL_KAYDET_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Profil Kaydet</Value>
+    </Setting>
+    <Setting Name="ERR_PROFIL_ZATEN_VAR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Bu isimde bir profil zaten var!</Value>
+    </Setting>
+    <Setting Name="MSG_BASARIYLA_KAYDEDILDI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Başarıyla Kaydedildi!</Value>
+    </Setting>
+    <Setting Name="MSG_HATA_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Hata</Value>
+    </Setting>
+    <Setting Name="MSG_BILGI_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Bilgi</Value>
+    </Setting>
+    <Setting Name="ERR_JSON_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Kritik JSON Hatası</Value>
+    </Setting>
+    <Setting Name="ERR_JSON_DIL_METIN" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DİL DOSYASINDA YAZIM HATASI VAR!\nDosya: {0}\nDetay: {1}\n\nLütfen JSON dosyasındaki virgül ve tırnak işaretlerini kontrol edin.</Value>
+    </Setting>
+    <Setting Name="ERR_JSON_TEMA_METIN" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">TEMA DOSYASINDA YAZIM HATASI VAR!\nDosya: {0}\nDetay: {1}\n\nLütfen JSON dosyasındaki virgül ve tırnak işaretlerini kontrol edin.</Value>
+    </Setting>
+    <Setting Name="KapanisZamanAsimiIterasyon" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">20</Value>
+    </Setting>
+    <Setting Name="KapanisBeklemeMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">50</Value>
+    </Setting>
+    <Setting Name="ModGecisZamanAsimiIterasyon" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">15</Value>
+    </Setting>
+    <Setting Name="ModGecisBeklemeMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="DinamikAyarGecikmesiMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">400</Value>
+    </Setting>
+    <Setting Name="OtopilotBeklemeMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="KalibrasyonBeklemeMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="MENU_PROFIL_SIL" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">🗑 Seçili Özel Profili Sil</Value>
+    </Setting>
+    <Setting Name="MSG_PROFIL_SIL_ONAY" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">'{0}' profilini silmek istediğinize emin misiniz?</Value>
+    </Setting>
+    <Setting Name="MSG_PROFIL_SIL_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Profil Sil</Value>
+    </Setting>
+    <Setting Name="LOG_PROFIL_SILINDI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM] {0} başarıyla silindi.</Value>
+    </Setting>
+    <Setting Name="MSG_SADECE_OZEL_PROFIL_SILINIR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Sadece kendi kaydettiğiniz özel profilleri silebilirsiniz!</Value>
+    </Setting>
+    <Setting Name="MSG_UYARI_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Uyarı</Value>
+    </Setting>
+    <Setting Name="UI_MOD_MUHENDIS_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ATEL Karar Destek - [İLERİ MÜHENDİS MODU]</Value>
+    </Setting>
+    <Setting Name="UI_BTN_TAKTIK_MODA_DON" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">TAKTİK MODA DÖN</Value>
+    </Setting>
+    <Setting Name="UI_MOD_TAKTIK_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">ATEL Karar Destek - [TAKTİK (ASKERİ) MOD]</Value>
+    </Setting>
+    <Setting Name="UI_BTN_ILERI_MOD_AKTIF" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">İLERİ MOD AKTİF</Value>
+    </Setting>
+    <Setting Name="LOG_OTOPILOT_BAGLANILIYOR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[OTOPİLOT] Cihaza otomatik bağlanılıyor...</Value>
+    </Setting>
+    <Setting Name="LOG_OTOPILOT_AKIS_BASLIYOR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[OTOPİLOT] Veri akışı başlatılıyor...</Value>
+    </Setting>
+    <Setting Name="LOG_IZLEME_DURDURULDU" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM] İzleme geçici olarak durduruldu.</Value>
+    </Setting>
+    <Setting Name="LOG_ISLEM_BASARISIZ" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[HATA] İşlem başarısız: {0}</Value>
+    </Setting>
+    <Setting Name="UI_BTN_KALIBRE_EDILIYOR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">KALİBRE EDİLİYOR...</Value>
+    </Setting>
+    <Setting Name="LOG_KALIBRASYON_BASLADI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[DONANIM] DC Offset (LO Leakage) Kalibrasyonu başlatıldı. Lütfen bekleyin...</Value>
+    </Setting>
+    <Setting Name="LOG_KALIBRASYON_BITTI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM] Kalibrasyon tamamlandı! Merkez frekanstaki (DC) parazit temizlendi.</Value>
+    </Setting>
+    <Setting Name="MSG_BAGLANTI_HATASI_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Bağlantı Hatası</Value>
+    </Setting>
+    <Setting Name="MSG_CIHAZ_BAGLI_DEGIL" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Cihaz bağlı değil! Lütfen önce cihaza bağlanın.</Value>
+    </Setting>
+    <Setting Name="UI_GRAFIK_ALT_FREKANSLAR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">&lt;- Alt Frekanslar</Value>
+    </Setting>
+    <Setting Name="UI_GRAFIK_UST_FREKANSLAR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Üst Frekanslar -&gt;</Value>
+    </Setting>
+    <Setting Name="MSG_RAPOR_BOS" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Henüz kaydedilmiş bir tehdit verisi yok! Sistem temiz.</Value>
+    </Setting>
+    <Setting Name="MSG_RAPOR_HAZIR_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Rapor Hazır </Value>
+    </Setting>
+    <Setting Name="MSG_RAPOR_BASARILI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Görev Raporu başarıyla oluşturuldu!\n\nDosya Masaüstüne Kaydedildi:\n{0}</Value>
+    </Setting>
+    <Setting Name="MSG_RAPOR_HATA_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Raporlama Hatası</Value>
+    </Setting>
+    <Setting Name="MSG_RAPOR_HATA_METIN" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Rapor oluşturulurken bir hata meydana geldi:\n\n{0}</Value>
+    </Setting>
+    <Setting Name="UI_MARKER_METIN" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">▼ M1: {0:F4} MHz</Value>
+    </Setting>
+    <Setting Name="GerekliSureklilik" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">25</Value>
+    </Setting>
+    <Setting Name="UI_PROFIL_DRONE" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">DJI Drone / Wi-Fi (2.4 GHz)</Value>
+    </Setting>
+    <Setting Name="UI_PROFIL_TELSIZ" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Taktik Telsiz (UHF 433 MHz)</Value>
+    </Setting>
+    <Setting Name="UI_PROFIL_TELEFON" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">GSM / LTE Telefon (1.75 GHz)</Value>
+    </Setting>
+    <Setting Name="DOSYA_AYARLAR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">SistemAyarlari.json</Value>
+    </Setting>
+    <Setting Name="DOSYA_LOG_CSV" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Tehdit_Raporlari.csv</Value>
+    </Setting>
+    <Setting Name="VARSAYILAN_DIL" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Dil_Turkce.json</Value>
+    </Setting>
+    <Setting Name="VARSAYILAN_TEMA" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Tema_Varsayilan.json</Value>
+    </Setting>
+    <Setting Name="CSV_BASLIK_SATIRI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Tarih_Saat;Merkez_Frekans_MHz;Sinyal_Gucu_dB;Tehdit_Esigi_dB;Bant_Genisligi_MHz;Ornekleme_Hizi_MSps</Value>
+    </Setting>
+    <Setting Name="DroneFrekans" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">2.4</Value>
+    </Setting>
+    <Setting Name="DroneOrnekleme" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">22.0</Value>
+    </Setting>
+    <Setting Name="DroneBant" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">20.0</Value>
+    </Setting>
+    <Setting Name="TelsizFrekans" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">433.0</Value>
+    </Setting>
+    <Setting Name="TelsizOrnekleme" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">2.5</Value>
+    </Setting>
+    <Setting Name="TelsizBant" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">2.0</Value>
+    </Setting>
+    <Setting Name="TelefonFrekans" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">1750.0</Value>
+    </Setting>
+    <Setting Name="TelefonOrnekleme" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">2.0</Value>
+    </Setting>
+    <Setting Name="TelefonBant" Type="System.Decimal" Scope="Application">
+      <Value Profile="(Default)">1.5</Value>
+    </Setting>
+    <Setting Name="BIRIM_GHZ" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">GHz</Value>
+    </Setting>
+    <Setting Name="BIRIM_MHZ" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">MHz</Value>
+    </Setting>
+    <Setting Name="BIRIM_MSPS" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">MSps</Value>
+    </Setting>
+    <Setting Name="FORMAT_MS" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{0} ms</Value>
+    </Setting>
+    <Setting Name="LOG_SISTEM_ON_EK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM]</Value>
+    </Setting>
+    <Setting Name="YENI_SATIR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">\n</Value>
+    </Setting>
+    <Setting Name="BIRIM_KHZ" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">kHz</Value>
+    </Setting>
+    <Setting Name="BIRIM_KSPS" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">kSps</Value>
+    </Setting>
+    <Setting Name="KISA_K" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">k</Value>
+    </Setting>
+    <Setting Name="KISA_M" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">M</Value>
+    </Setting>
+    <Setting Name="KISA_G" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">G</Value>
+    </Setting>
+    <Setting Name="CarpanMega" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">1000000</Value>
+    </Setting>
+    <Setting Name="CarpanGiga" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">1000000000</Value>
+    </Setting>
+    <Setting Name="VarsayilanOrneklemeHz" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">31200000</Value>
+    </Setting>
+    <Setting Name="VarsayilanBantHz" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">20000000</Value>
+    </Setting>
+    <Setting Name="BolenYari" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+    <Setting Name="YuzdeBolen" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">100</Value>
+    </Setting>
+    <Setting Name="FftOlcekBoleni" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">2048</Value>
+    </Setting>
+    <Setting Name="DbHesapCarpani" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">20</Value>
+    </Setting>
+    <Setting Name="MathLogSifirKorumasi" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">1E-10</Value>
+    </Setting>
+    <Setting Name="GrafikVarsayilanMaxDb" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">20</Value>
+    </Setting>
+    <Setting Name="GrafikVarsayilanMinDb" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">-120</Value>
+    </Setting>
+    <Setting Name="VarsayilanTehditEsigiDb" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">-40</Value>
+    </Setting>
+    <Setting Name="VarsayilanGurultuEsigiDb" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">-80</Value>
+    </Setting>
+    <Setting Name="GridYatayKareSayisi" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">20</Value>
+    </Setting>
+    <Setting Name="GridDikeyKareSayisi" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="VarsayilanTxKazanci" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">60</Value>
+    </Setting>
+    <Setting Name="ERR_KALIBRASYON_HATASI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Kalibrasyon hatası:</Value>
+    </Setting>
+    <Setting Name="ERR_LOG_YAZILAMADI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Log yazılamadı:</Value>
+    </Setting>
+    <Setting Name="ERR_AYAR_KAYDEDILEMEDI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Sistem hafızası kaydedilemedi:</Value>
+    </Setting>
+    <Setting Name="ERR_KAYIT_BASLIK" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Kayıt Hatası</Value>
+    </Setting>
+    <Setting Name="EXCEL_SAYFA_ADI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Görev Raporu</Value>
+    </Setting>
+    <Setting Name="EXCEL_DOSYA_SABLONU" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Gorev_Sonu_Raporu_{0}.xlsx</Value>
+    </Setting>
+    <Setting Name="UI_BTN_KAYDET" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Kaydet</Value>
+    </Setting>
+    <Setting Name="CarpanKilo" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="STATUS_SINYAL_BASILIYOR" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">☢ EŞİK DEĞERİNİN ÜSTÜNDE SİNYAL ALGILANDI! ☢</Value>
+    </Setting>
+    <Setting Name="FORMAT_YUZDE" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">{0}dB</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

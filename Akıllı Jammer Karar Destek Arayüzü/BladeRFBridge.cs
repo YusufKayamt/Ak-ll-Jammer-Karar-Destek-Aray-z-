@@ -7,11 +7,9 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
     {
         private const string DllName = "bladeRF";
 
-        // Modül Tanımları (C++ Enum karşılığı)
         public const int BLADERF_MODULE_RX = 0;
         public const int BLADERF_MODULE_TX = 1;
 
-        // Veri Formatı
         public const int BLADERF_FORMAT_SC16_Q11 = 0;
 
         [DllImport("bladerf.dll", CallingConvention = CallingConvention.Cdecl)]
@@ -44,13 +42,26 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         [DllImport(DllName, EntryPoint = "bladerf_set_bias_tee", CallingConvention = CallingConvention.Cdecl)]
         public static extern int bladerf_set_bias_tee(IntPtr dev, int module, [MarshalAs(UnmanagedType.I1)] bool enable);
 
-        [DllImport(DllName, EntryPoint = "bladerf_set_loopback", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int bladerf_set_loopback(IntPtr dev, int loopback);
-
         [DllImport("bladerf.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int bladerf_sync_tx(IntPtr device, short[] samples, uint num_samples, IntPtr metadata, uint timeout_ms);
 
         [DllImport("bladerf.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int bladerf_sync_rx(IntPtr device, short[] samples, uint num_samples, IntPtr metadata, uint timeout_ms);
+
+        [DllImport("bladeRF.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int bladerf_calibrate_dc(IntPtr dev, int module);
+
+        [DllImport("bladeRF.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int bladerf_set_loopback(IntPtr dev, int loopback_mode);
+
+        public const int BLADERF_LB_NONE = 0;
+        public const int BLADERF_LB_FIRMWARE = 1;
+        public const int BLADERF_LB_BB_TXL_RXL = 2;
+
+        [DllImport("bladeRF.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int bladerf_sync_tx(IntPtr dev, short[] samples, int num_samples, IntPtr metadata, int timeout_ms);
+
+        [DllImport("bladeRF.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int bladerf_sync_config(IntPtr dev, int module, int format, int num_buffers, int buffer_size, int num_transfers, int timeout_ms);
     }
 }
