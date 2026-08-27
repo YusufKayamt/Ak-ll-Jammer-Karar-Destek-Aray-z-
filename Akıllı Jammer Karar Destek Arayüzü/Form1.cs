@@ -735,144 +735,125 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             if (!_saldiriAktif)
             {
                 ulong txFrekans = 0;
-                uint txBant = 0;
-                int txKazanc = trbTxGain != null ? trbTxGain.Value : Properties.Settings.Default.VarsayilanTxKazanci;
-
-                if (rdoTestModu != null && rdoTestModu.Checked) txKazanc = Properties.Settings.Default.DahiliTestKazanci;
+                int txKazanc = trbTxGain != null ? trbTxGain.Value : 40;
 
                 try
                 {
                     decimal txFrekansCarpani = cmbTxBirim.Text.Contains("G") ? 1000000000m : (cmbTxBirim.Text.Contains("M") ? 1000000m : 1000m);
-                    decimal hesaplananTxFrekans = numTxFrekans.Value * txFrekansCarpani;
-
-                    decimal txBantCarpani = cmbTxBantBirim.Text.Contains("G") ? 1000000000m : (cmbTxBantBirim.Text.Contains("M") ? 1000000m : 1000m);
-                    decimal hesaplananTxBant = numTxBantGenisligi.Value * txBantCarpani;
-
-                    if (hesaplananTxFrekans > (decimal)Properties.Settings.Default.MaxFrekansHz) hesaplananTxFrekans = (decimal)Properties.Settings.Default.MaxFrekansHz;
-                    if (hesaplananTxBant > (decimal)Properties.Settings.Default.MaxBantGenisligi) hesaplananTxBant = (decimal)Properties.Settings.Default.MaxBantGenisligi;
-
-                    txFrekans = (ulong)hesaplananTxFrekans;
-                    txBant = (uint)hesaplananTxBant;
+                    txFrekans = (ulong)(numTxFrekans.Value * txFrekansCarpani);
                 }
-                catch (Exception)
-                {
-                    MessageBox.Show("Girdiğiniz değerler sistem sınırlarının çok üzerinde!\nLütfen sayıları ve birimleri (MHz, GHz vb.) doğru seçtiğinizden emin olun.", "Değer Aşımı (Overflow)", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    _saldiriAktif = false;
-                    return;
-                }
+                catch { return; }
 
                 _saldiriAktif = true;
-                btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_SINYALI_KES);
+                btnSaldırı.Text = "SİNYALİ KES";
                 btnSaldırı.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
                 btnSaldırı.ForeColor = Color.White;
-
-                lblTehditDurumu.Text = DilMotoru.Cevir(Properties.Settings.Default.STATUS_SINYAL_BASILIYOR);
+                lblTehditDurumu.Text = "TAARRUZ AKTİF!";
                 lblTehditDurumu.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
+                KonsolaYaz("[SİSTEM] ANA SİLAH: Geniş Bant Tarak Sinyali Basılıyor...");
 
-                KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_TX_AKTIF));
-
-                Task.Run(() =>
+                Task.Run(async () =>
                 {
                     try
                     {
-                        BladeRFBridge.bladerf_set_frequency(_devicePointer, 1, txFrekans);
+                        // 1. ADIM: USB ve Senkronizasyon İçin Önce Durdur
+                        _isStreaming = false;
+                        await Task.Delay(200);
+                        BladeRFBridge.bladerf_enable_module(_devicePointer, 0, false);
+                        BladeRFBridge.bladerf_enable_module(_devicePointer, 1, false);
 
-                        // TX için her zaman sabit, güvenli ve boğulmayan örnekleme hızı (4 MHz)
-                        uint txOrnekleme = 4000000;
-                        BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 1, txOrnekleme, out uint _);
-                        BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 1, (uint)(txBant > 0 ? txBant : 4000000), out uint _);
+                        // 2. ADIM: Frekansları Ekranda Doğru Görmek İçin Eşitle
+                        BladeRFBridge.bladerf_set_frequency(_devicePointer, 1, txFrekans);
+                        BladeRFBridge.bladerf_set_frequency(_devicePointer, 0, txFrekans);
+
+                        uint hedefHiz = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : 21440000u;
+                        BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 0, hedefHiz, out uint gercekRx);
+                        BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 1, hedefHiz, out uint gercekTx);
+
+                        // 🚀 GRAFİK KAYMASINI (6 MHz Hatasını) ENGELLEYEN KRİTİK SATIR:
+                        donanimGercekOrnekleme = gercekRx;
+
+                        // Filtreleri sonuna kadar aç ki taraklar tırpanlanmasın
+                        BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 0, hedefHiz, out uint _);
+                        BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 1, hedefHiz, out uint _);
+
                         BladeRFBridge.bladerf_set_gain(_devicePointer, 1, txKazanc);
 
-                        // CUMA GÜNKÜ ASLA ÇÖKMEYEN SABİT TAMPON (BUFFER) AYARLARI
-                        uint buffer_size = 4096;
-                        BladeRFBridge.bladerf_sync_config(_devicePointer, 1, 0, 16, buffer_size, 8, 5000);
+                        uint buffer_size = 8192u;
+                        uint timeout_ms = 5000u;
+
+                        BladeRFBridge.bladerf_sync_config(_devicePointer, 0, 0, 16u, buffer_size, 8u, timeout_ms);
+                        BladeRFBridge.bladerf_sync_config(_devicePointer, 1, 0, 16u, buffer_size, 8u, timeout_ms);
+
+                        BladeRFBridge.bladerf_enable_module(_devicePointer, 0, true);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 1, true);
 
-                        short[] testSinyali = new short[buffer_size * 2];
-                        int tepeSayisi = 15; // Bant genişliğini tamamen kapatacak 15 devasa tarak dişi
-                        short genlik = (short)(18000 / tepeSayisi); // Gücü anakartı kitlemeden 15 tepeye böl
-
-                        // ========================================================================
-                        // SIR: KUSURSUZ FAZ MATEMATİĞİ (Phase-Continuous Bin Calculation)
-                        // Bu matematik sayesinde sinyal başa sardığında çatlama olmaz, 
-                        // LO Leakage (Merkez Sızıntısı) bu devasa güç karşısında ezilir ve kaybolur.
-                        // ========================================================================
-                        int[] frekansCarpanlari = new int[tepeSayisi];
-                        for (int i = 0; i < tepeSayisi; i++)
+                        // 3. ADIM: Çizim Motorunu Başlat
+                        _isStreaming = true;
+                        _rxIpligiAktif = true;
+                        _ = Task.Run(() =>
                         {
-                            // Tepeleri bant genişliğine (4 MHz) eşit dağıt
-                            double hedefFrekans = (-txOrnekleme / 2.2) + (txOrnekleme / (tepeSayisi + 1.0)) * (i + 1);
+                            _okumaIslemiTamamlandi = false;
+                            short[] iqData = new short[buffer_size * 2];
+                            if (sonIqHafizasi == null || sonIqHafizasi.Length != iqData.Length) sonIqHafizasi = new short[iqData.Length];
+                            try
+                            {
+                                while (_isStreaming)
+                                {
+                                    int rxStatus = BladeRFBridge.bladerf_sync_rx(_devicePointer, iqData, buffer_size, IntPtr.Zero, timeout_ms);
+                                    if (rxStatus == 0 && _isStreaming && !_cizimMesgul)
+                                    {
+                                        Buffer.BlockCopy(iqData, 0, sonIqHafizasi, 0, iqData.Length * 2);
+                                        GrafikGuncelle();
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                _rxIpligiAktif = false;
+                                _okumaIslemiTamamlandi = true;
+                            }
+                        });
 
-                            // Frekansı, buffer'ın tam katı olacak şekilde zorla (FFT Bin Hizalaması)
-                            double binCozunurlugu = (double)txOrnekleme / buffer_size;
-                            frekansCarpanlari[i] = (int)Math.Round(hedefFrekans / binCozunurlugu);
-                        }
+                        // 4. ADIM: GERÇEK JAMMER SİNYALİ (Cuma Günkü Vahşi Tarak)
+                        short[] testSinyali = new short[buffer_size * 2];
+                        short genlik = 15000; // Cihazı inleten güç!
+                        int periyot = 64; // Tarak dişlerinin sıklığını belirler
 
-                        // Sinyali işlemciyi %0 yoracak şekilde sadece 1 kere RAM'e kazı
                         for (int i = 0; i < buffer_size; i++)
                         {
-                            double I = 0;
-                            double Q = 0;
-
-                            for (int p = 0; p < tepeSayisi; p++)
-                            {
-                                // Sinyal başa sardığında mükemmel öpüşmeyi sağlayan formül:
-                                double faz = 2.0 * Math.PI * frekansCarpanlari[p] * i / buffer_size;
-                                I += genlik * Math.Cos(faz);
-                                Q += genlik * Math.Sin(faz);
-                            }
-
-                            testSinyali[i * 2] = (short)I;
-                            testSinyali[i * 2 + 1] = (short)Q;
+                            short val = (i % periyot < (periyot / 2)) ? genlik : (short)-genlik;
+                            testSinyali[i * 2] = val;       // I Kanalı
+                            testSinyali[i * 2 + 1] = val;   // Q Kanalı
                         }
 
+                        // 5. ADIM: ATEŞLE
                         while (_saldiriAktif)
                         {
-                            // Burada işlemci yatıyor, sadece RAM'deki o kusursuz tarak havaya basılıyor.
-                            int txStatus = BladeRFBridge.bladerf_sync_tx(_devicePointer, testSinyali, buffer_size, IntPtr.Zero, 5000);
+                            int txStatus = BladeRFBridge.bladerf_sync_tx(_devicePointer, testSinyali, buffer_size, IntPtr.Zero, timeout_ms);
                             if (txStatus != 0)
                             {
-                                KonsolaYaz($"[TX HATASI] Güç veya Buffer Kilitlendi. Kod: {txStatus}");
-                                _saldiriAktif = false;
+                                KonsolaYaz($"[TX HATASI] Kod: {txStatus}");
                                 break;
                             }
                         }
                     }
-                    catch (Exception ex) { KonsolaYaz("[TX ÇÖKME] " + ex.Message); }
-                    finally { try { BladeRFBridge.bladerf_enable_module(_devicePointer, 1, false); } catch { } }
+                    catch (Exception ex) { KonsolaYaz($"[SİSTEM KRİZİ] {ex.Message}"); }
+                    finally
+                    {
+                        _saldiriAktif = false;
+                        try { BladeRFBridge.bladerf_enable_module(_devicePointer, 1, false); } catch { }
+                    }
                 });
             }
             else
             {
                 _saldiriAktif = false;
-                if (rdoTestModu != null && rdoTestModu.Checked)
-                {
-                    btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_TEST_GONDER);
-                    btnSaldırı.BackColor = Color.Orange;
-                    btnSaldırı.ForeColor = Color.Black;
-                    lblTehditDurumu.Text = DilMotoru.Cevir(Properties.Settings.Default.STATUS_MOD_TEST);
-                    lblTehditDurumu.BackColor = TemaMotoru.TEMA_GUVENLI;
-                }
-                else if (rdoTaarruzModu != null && rdoTaarruzModu.Checked)
-                {
-                    btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_SALDIRI_BASLAT);
-                    btnSaldırı.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
-                    btnSaldırı.ForeColor = Color.White;
-                    lblTehditDurumu.Text = DilMotoru.Cevir(Properties.Settings.Default.STATUS_MOD_TAARRUZ);
-                    lblTehditDurumu.BackColor = TemaMotoru.TEMA_UYARI;
-                }
-                else
-                {
-                    btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_SALDIRI_BASLAT);
-                    btnSaldırı.BackColor = Color.Gray;
-                    btnSaldırı.ForeColor = Color.White;
-                    lblTehditDurumu.Text = DilMotoru.Cevir(Properties.Settings.Default.STATUS_MOD_DINLEME);
-                    lblTehditDurumu.BackColor = TemaMotoru.TEMA_DINLEME;
-                }
-                KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_TX_KAPALI));
+                btnSaldırı.Text = "SALDIRI BAŞLAT";
+                btnSaldırı.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
+                KonsolaYaz("[SİSTEM] Taarruz kesildi.");
             }
         }
-
         private async void btnDcKalibrasyon_Click(object sender, EventArgs e)
         {
             if (!_isDeviceOpen || _devicePointer == IntPtr.Zero)
@@ -1075,13 +1056,20 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
                                 double islenecekDb = maxDbPixelIcin;
 
-                                // ZIRH 4: GÜRÜLTÜ EFEKTİ VE MASKE TAMAMEN SİLİNDİ!
-                                // Grafikte artık sahte parazitler veya gizlemeler yok.
-                                // Sadece ham donanım verisi işlenecek.
-
                                 if (gurultuEngelleAktif && islenecekDb < gurultuEsigi) islenecekDb = min_dB + 1.0;
 
-                                yumusatilmisFFT[pixelX] = (alpha * islenecekDb) + ((1 - alpha) * yumusatilmisFFT[pixelX]);
+                                // 🚀 MÜHENDİSLİK ÇÖZÜMÜ: Peak-Hold (Hızlı Saldırı, Yavaş Sönümleme)
+                                // Eğer gelen yeni sinyal (Jammer) ekrandaki çizimden daha güçlüyse, 
+                                // filtreyi tamamen by-pass edip mızrağı ANINDA ekrana saplıyoruz!
+                                if (islenecekDb > yumusatilmisFFT[pixelX])
+                                {
+                                    yumusatilmisFFT[pixelX] = islenecekDb;
+                                }
+                                else
+                                {
+                                    // Sinyal kesildiğinde veya düştüğünde yavaşça sönümle (Yumuşatma burada çalışsın)
+                                    yumusatilmisFFT[pixelX] = (alpha * islenecekDb) + ((1 - alpha) * yumusatilmisFFT[pixelX]);
+                                }
 
                                 double filtrelenmisDb = yumusatilmisFFT[pixelX];
                                 if (filtrelenmisDb > anlikMaksimumGenlik) anlikMaksimumGenlik = filtrelenmisDb;
@@ -1771,7 +1759,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private void label10_Click(object sender, EventArgs e) { }
         private void groupBox1_Enter(object sender, EventArgs e) { }
         #endregion
-    }
+    }//SAĞLAM SIN 
 
     #region 9. SİSTEM AYAR MODELLERİ
     public class AyarModeli
