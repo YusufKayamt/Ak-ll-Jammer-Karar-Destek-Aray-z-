@@ -67,7 +67,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             _seciliTema = Properties.Settings.Default.VARSAYILAN_TEMA;
 
             if (btnModMuhendis != null) btnModMuhendis.Click += btnModMuhendis_Click;
-
+            if (trbTxGain != null) trbTxGain.MouseUp += trbTxGain_MouseUp;
             if (numFrekans != null) numFrekans.ValueChanged += (s, e) => DinamikParametreUygula();
             if (numOrnekleme != null) numOrnekleme.ValueChanged += (s, e) => DinamikParametreUygula();
             if (numBantGenisligi != null) numBantGenisligi.ValueChanged += (s, e) => DinamikParametreUygula();
@@ -735,12 +735,16 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             if (!_saldiriAktif)
             {
                 ulong txFrekans = 0;
+                uint txBant = 0;
                 int txKazanc = trbTxGain != null ? trbTxGain.Value : 40;
 
                 try
                 {
                     decimal txFrekansCarpani = cmbTxBirim.Text.Contains("G") ? 1000000000m : (cmbTxBirim.Text.Contains("M") ? 1000000m : 1000m);
                     txFrekans = (ulong)(numTxFrekans.Value * txFrekansCarpani);
+
+                    decimal txBantCarpani = cmbTxBantBirim.Text.Contains("G") ? 1000000000m : (cmbTxBantBirim.Text.Contains("M") ? 1000000m : 1000m);
+                    txBant = (uint)(numTxBantGenisligi.Value * txBantCarpani);
                 }
                 catch { return; }
 
@@ -750,57 +754,55 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 btnSaldırı.ForeColor = Color.White;
                 lblTehditDurumu.Text = "TAARRUZ AKTİF!";
                 lblTehditDurumu.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
-                KonsolaYaz("[SİSTEM] ANA SİLAH: Geniş Bant Tarak Sinyali Basılıyor...");
+                KonsolaYaz($"[SİSTEM] ANA SİLAH: Kilitlenmeye Karşı Korumalı Dijital Tarak Başlatılıyor...");
 
                 Task.Run(async () =>
                 {
                     try
                     {
-                        // 1. ADIM: USB ve Senkronizasyon İçin Önce Durdur
+                        // 1. ZORUNLU DURDURMA VE USB TEMİZLİĞİ (Kilitlenmeyi önler)
                         _isStreaming = false;
-                        await Task.Delay(200);
+                        await Task.Delay(300);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 0, false);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 1, false);
 
-                        // 2. ADIM: Frekansları Ekranda Doğru Görmek İçin Eşitle
                         BladeRFBridge.bladerf_set_frequency(_devicePointer, 1, txFrekans);
                         BladeRFBridge.bladerf_set_frequency(_devicePointer, 0, txFrekans);
 
-                        uint hedefHiz = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : 21440000u;
+                        uint hedefHiz = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : 25000000u;
                         BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 0, hedefHiz, out uint gercekRx);
                         BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 1, hedefHiz, out uint gercekTx);
 
-                        // 🚀 GRAFİK KAYMASINI (6 MHz Hatasını) ENGELLEYEN KRİTİK SATIR:
                         donanimGercekOrnekleme = gercekRx;
 
-                        // Filtreleri sonuna kadar aç ki taraklar tırpanlanmasın
+                        // Filtreleri tam açıyoruz
                         BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 0, hedefHiz, out uint _);
                         BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 1, hedefHiz, out uint _);
 
                         BladeRFBridge.bladerf_set_gain(_devicePointer, 1, txKazanc);
 
-                        uint buffer_size = 8192u;
-                        uint timeout_ms = 5000u;
+                        // 2. KİLİTLENMEYİ (DEADLOCK) ÖNLEYEN GÜVENLİ BUFFER BOYUTU
+                        uint donanim_buffer = 8192u;
+                        uint timeout_ms = 2500u; // VS kilitlenmesini engellemek için timeout yarıya indirildi
 
-                        BladeRFBridge.bladerf_sync_config(_devicePointer, 0, 0, 16u, buffer_size, 8u, timeout_ms);
-                        BladeRFBridge.bladerf_sync_config(_devicePointer, 1, 0, 16u, buffer_size, 8u, timeout_ms);
+                        BladeRFBridge.bladerf_sync_config(_devicePointer, 0, 0, 16u, donanim_buffer, 8u, timeout_ms);
+                        BladeRFBridge.bladerf_sync_config(_devicePointer, 1, 0, 16u, donanim_buffer, 8u, timeout_ms);
 
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 0, true);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 1, true);
 
-                        // 3. ADIM: Çizim Motorunu Başlat
                         _isStreaming = true;
                         _rxIpligiAktif = true;
                         _ = Task.Run(() =>
                         {
                             _okumaIslemiTamamlandi = false;
-                            short[] iqData = new short[buffer_size * 2];
+                            short[] iqData = new short[donanim_buffer * 2];
                             if (sonIqHafizasi == null || sonIqHafizasi.Length != iqData.Length) sonIqHafizasi = new short[iqData.Length];
                             try
                             {
                                 while (_isStreaming)
                                 {
-                                    int rxStatus = BladeRFBridge.bladerf_sync_rx(_devicePointer, iqData, buffer_size, IntPtr.Zero, timeout_ms);
+                                    int rxStatus = BladeRFBridge.bladerf_sync_rx(_devicePointer, iqData, donanim_buffer, IntPtr.Zero, timeout_ms);
                                     if (rxStatus == 0 && _isStreaming && !_cizimMesgul)
                                     {
                                         Buffer.BlockCopy(iqData, 0, sonIqHafizasi, 0, iqData.Length * 2);
@@ -815,22 +817,52 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                             }
                         });
 
-                        // 4. ADIM: GERÇEK JAMMER SİNYALİ (Cuma Günkü Vahşi Tarak)
-                        short[] testSinyali = new short[buffer_size * 2];
-                        short genlik = 15000; // Cihazı inleten güç!
-                        int periyot = 64; // Tarak dişlerinin sıklığını belirler
+                        // ====================================================================
+                        // 3. ÇATLAMA VE SIZINTI YAPMAYAN KUSURSUZ MATEMATİK
+                        // ====================================================================
+                        uint buffer_boyutu = donanim_buffer * 8; // VS'yi kilitlemeyecek optimum boyut
+                        short[] testSinyali = new short[buffer_boyutu * 2];
 
-                        for (int i = 0; i < buffer_size; i++)
+                        double f_cozunurluk = (double)gercekTx / buffer_boyutu;
+                        double bant_siniri = (double)txBant / 2.0;
+
+                        int tepeSayisi = 21; // Bant içine çakılacak sivri diş sayısı
+                        double adimFrekans = txBant / (double)(tepeSayisi - 1);
+
+                        short genlik = (short)(32000 / tepeSayisi);
+
+                        // Dişlerin frekans indekslerini (k) TAM SAYI olarak hesapla
+                        int[] k_degerleri = new int[tepeSayisi];
+                        for (int p = 0; p < tepeSayisi; p++)
                         {
-                            short val = (i % periyot < (periyot / 2)) ? genlik : (short)-genlik;
-                            testSinyali[i * 2] = val;       // I Kanalı
-                            testSinyali[i * 2 + 1] = val;   // Q Kanalı
+                            double hedef_f = -bant_siniri + (p * adimFrekans);
+
+                            // 🚀 DİJİTAL MÜHENDİSLİK: Fazın çatlamaması için frekans indeksinin (k) KESİNLİKLE tam sayı olması şarttır!
+                            k_degerleri[p] = (int)Math.Round(hedef_f / f_cozunurluk);
+                            if (k_degerleri[p] == 0) k_degerleri[p] = 1;
                         }
 
-                        // 5. ADIM: ATEŞLE
+                        for (int i = 0; i < buffer_boyutu; i++)
+                        {
+                            double I = 0;
+                            double Q = 0;
+
+                            for (int p = 0; p < tepeSayisi; p++)
+                            {
+                                // k tam sayı olduğu için (i = buffer_boyutu) olduğunda faz tam 2*PI'nin katı olur, kusursuz kenetlenir.
+                                double faz = 2.0 * Math.PI * k_degerleri[p] * ((double)i / buffer_boyutu);
+                                I += genlik * Math.Cos(faz);
+                                Q += genlik * Math.Sin(faz);
+                            }
+
+                            testSinyali[i * 2] = (short)I;
+                            testSinyali[i * 2 + 1] = (short)Q;
+                        }
+
+                        // 4. ATEŞLE!
                         while (_saldiriAktif)
                         {
-                            int txStatus = BladeRFBridge.bladerf_sync_tx(_devicePointer, testSinyali, buffer_size, IntPtr.Zero, timeout_ms);
+                            int txStatus = BladeRFBridge.bladerf_sync_tx(_devicePointer, testSinyali, buffer_boyutu, IntPtr.Zero, timeout_ms);
                             if (txStatus != 0)
                             {
                                 KonsolaYaz($"[TX HATASI] Kod: {txStatus}");
@@ -1628,7 +1660,10 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private void chkBiasTee_CheckedChanged(object sender, EventArgs e)
         {
             if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
+
+            // Hem dinleme (RX) hem de saldırı (TX) portlarındaki aktif amfilere 5V gücü bas!
             BladeRFBridge.bladerf_set_bias_tee(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, chkBiasTee.Checked);
+            BladeRFBridge.bladerf_set_bias_tee(_devicePointer, BladeRFBridge.BLADERF_MODULE_TX, chkBiasTee.Checked);
         }
 
         private void trbRxKazanci_Scroll(object sender, EventArgs e)
@@ -1640,6 +1675,12 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         {
             if (!_isDeviceOpen || _devicePointer == IntPtr.Zero || chkAGC.Checked) return;
             BladeRFBridge.bladerf_set_gain(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, trbRxKazanci.Value);
+        }
+
+        private void trbTxGain_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
+            BladeRFBridge.bladerf_set_gain(_devicePointer, BladeRFBridge.BLADERF_MODULE_TX, trbTxGain.Value);
         }
 
         private void trbYumusatma_Scroll(object sender, EventArgs e)
@@ -1730,7 +1771,23 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             if (lblTxKazanciDegeri != null) lblTxKazanciDegeri.Text = trbTxGain.Value.ToString() + " dB";
         }
 
-        private void TxParametresiDegisti(object sender, EventArgs e) { }
+        private void TxParametresiDegisti(object sender, EventArgs e)
+        {
+            if (!_isDeviceOpen || _devicePointer == IntPtr.Zero || !_saldiriAktif) return;
+
+            try
+            {
+                decimal txFrekansCarpani = cmbTxBirim.Text.Contains("G") ? 1000000000m : (cmbTxBirim.Text.Contains("M") ? 1000000m : 1000m);
+                ulong yeniTxFrekans = (ulong)(numTxFrekans.Value * txFrekansCarpani);
+
+                decimal txBantCarpani = cmbTxBantBirim.Text.Contains("G") ? 1000000000m : (cmbTxBantBirim.Text.Contains("M") ? 1000000m : 1000m);
+                uint yeniTxBant = (uint)(numTxBantGenisligi.Value * txBantCarpani);
+
+                BladeRFBridge.bladerf_set_frequency(_devicePointer, 1, yeniTxFrekans);
+                BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 1, yeniTxBant, out uint _);
+            }
+            catch { }
+        }
         private void btnModMuhendis_Click_1(object sender, EventArgs e) { }
         private void groupBox2_Enter(object sender, EventArgs e) { }
         private void chkTXgör_CheckedChanged(object sender, EventArgs e) { }

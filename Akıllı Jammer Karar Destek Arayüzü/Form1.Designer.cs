@@ -328,6 +328,7 @@
             // 
             chkBiasTee.AutoSize = true;
             chkBiasTee.Cursor = Cursors.Hand;
+            chkBiasTee.Enabled = false;
             chkBiasTee.Font = new Font("Segoe UI", 9F);
             chkBiasTee.Location = new Point(21, 187);
             chkBiasTee.Name = "chkBiasTee";
