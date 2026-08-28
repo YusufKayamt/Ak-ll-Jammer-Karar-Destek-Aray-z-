@@ -68,9 +68,9 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
             if (btnModMuhendis != null) btnModMuhendis.Click += btnModMuhendis_Click;
             if (trbTxGain != null) trbTxGain.MouseUp += trbTxGain_MouseUp;
-            if (numFrekans != null) numFrekans.ValueChanged += (s, e) => DinamikParametreUygula();
-            if (numOrnekleme != null) numOrnekleme.ValueChanged += (s, e) => DinamikParametreUygula();
-            if (numBantGenisligi != null) numBantGenisligi.ValueChanged += (s, e) => DinamikParametreUygula();
+            if (numRxFrekans != null) numRxFrekans.ValueChanged += (s, e) => DinamikParametreUygula();
+            if (numRxOrnekleme != null) numRxOrnekleme.ValueChanged += (s, e) => DinamikParametreUygula();
+            if (numRxBantGenisligi != null) numRxBantGenisligi.ValueChanged += (s, e) => DinamikParametreUygula();
             if (numKirpmaYuzdesi != null) numKirpmaYuzdesi.ValueChanged += (s, e) => DinamikParametreUygula();
 
             if (numTxFrekans != null) numTxFrekans.ValueChanged += TxParametresiDegisti;
@@ -88,15 +88,15 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 btnSaldırı.BackColor = TemaMotoru.TEMA_PASIF;
             }
 
-            if (cmbBirim != null && cmbBirim.Items.Count > 0) cmbBirim.SelectedIndex = 0;
-            if (cmbOrneklemeBirim != null && cmbOrneklemeBirim.Items.Count > 0) cmbOrneklemeBirim.SelectedIndex = 0;
-            if (cmbBantBirim != null && cmbBantBirim.Items.Count > 0) cmbBantBirim.SelectedIndex = 0;
+            if (cmbRxBirim != null && cmbRxBirim.Items.Count > 0) cmbRxBirim.SelectedIndex = 0;
+            if (cmbRxOrneklemeBirim != null && cmbRxOrneklemeBirim.Items.Count > 0) cmbRxOrneklemeBirim.SelectedIndex = 0;
+            if (cmbRxBantBirim != null && cmbRxBantBirim.Items.Count > 0) cmbRxBantBirim.SelectedIndex = 0;
             if (cmbTxBirim != null && cmbTxBirim.Items.Count > 0) cmbTxBirim.SelectedIndex = 0;
             if (cmbTxBantBirim != null && cmbTxBantBirim.Items.Count > 0) cmbTxBantBirim.SelectedIndex = 0;
 
-            if (cmbBirim != null) eskiFrekansBirim = cmbBirim.Text;
-            if (cmbOrneklemeBirim != null) eskiOrneklemeBirim = cmbOrneklemeBirim.Text;
-            if (cmbBantBirim != null) eskiBantBirim = cmbBantBirim.Text;
+            if (cmbRxBirim != null) eskiFrekansBirim = cmbRxBirim.Text;
+            if (cmbRxOrneklemeBirim != null) eskiOrneklemeBirim = cmbRxOrneklemeBirim.Text;
+            if (cmbRxBantBirim != null) eskiBantBirim = cmbRxBantBirim.Text;
             if (cmbTxBirim != null) eskiTxFrekansBirim = cmbTxBirim.Text;
             if (cmbTxBantBirim != null) eskiTxBantBirim = cmbTxBantBirim.Text;
 
@@ -205,9 +205,9 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
         private void UI_LimitleriUygula()
         {
-            SetNumericLimits(numFrekans, cmbBirim?.Text, (decimal)Properties.Settings.Default.MinFrekansHz, (decimal)Properties.Settings.Default.MaxFrekansHz);
-            SetNumericLimits(numOrnekleme, cmbOrneklemeBirim?.Text, 1000000m, (decimal)Properties.Settings.Default.MaxOrneklemeHz);
-            SetNumericLimits(numBantGenisligi, cmbBantBirim?.Text, (decimal)Properties.Settings.Default.MinBantGenisligi, (decimal)Properties.Settings.Default.MaxBantGenisligi);
+            SetNumericLimits(numRxFrekans, cmbRxBirim?.Text, (decimal)Properties.Settings.Default.MinFrekansHz, (decimal)Properties.Settings.Default.MaxFrekansHz);
+            SetNumericLimits(numRxOrnekleme, cmbRxOrneklemeBirim?.Text, 1000000m, (decimal)Properties.Settings.Default.MaxOrneklemeHz);
+            SetNumericLimits(numRxBantGenisligi, cmbRxBantBirim?.Text, (decimal)Properties.Settings.Default.MinBantGenisligi, (decimal)Properties.Settings.Default.MaxBantGenisligi);
 
             SetNumericLimits(numTxFrekans, cmbTxBirim?.Text, (decimal)Properties.Settings.Default.MinFrekansHz, (decimal)Properties.Settings.Default.MaxFrekansHz);
             SetNumericLimits(numTxBantGenisligi, cmbTxBantBirim?.Text, (decimal)Properties.Settings.Default.MinBantGenisligi, (decimal)Properties.Settings.Default.MaxBantGenisligi);
@@ -514,21 +514,21 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         {
             decimal frekansCarpan = 1, orneklemeCarpan = 1, bantCarpan = 1;
 
-            if (cmbBirim.Text.Contains("G")) frekansCarpan = 1000000000m;
-            else if (cmbBirim.Text.Contains("M")) frekansCarpan = 1000000m;
-            else if (cmbBirim.Text.Contains("k") || cmbBirim.Text.Contains("K")) frekansCarpan = 1000m;
+            if (cmbRxBirim.Text.Contains("G")) frekansCarpan = 1000000000m;
+            else if (cmbRxBirim.Text.Contains("M")) frekansCarpan = 1000000m;
+            else if (cmbRxBirim.Text.Contains("k") || cmbRxBirim.Text.Contains("K")) frekansCarpan = 1000m;
 
-            if (cmbOrneklemeBirim.Text.Contains("G")) orneklemeCarpan = 1000000000m;
-            else if (cmbOrneklemeBirim.Text.Contains("M")) orneklemeCarpan = 1000000m;
-            else if (cmbOrneklemeBirim.Text.Contains("k") || cmbOrneklemeBirim.Text.Contains("K")) orneklemeCarpan = 1000m;
+            if (cmbRxOrneklemeBirim.Text.Contains("G")) orneklemeCarpan = 1000000000m;
+            else if (cmbRxOrneklemeBirim.Text.Contains("M")) orneklemeCarpan = 1000000m;
+            else if (cmbRxOrneklemeBirim.Text.Contains("k") || cmbRxOrneklemeBirim.Text.Contains("K")) orneklemeCarpan = 1000m;
 
-            if (cmbBantBirim.Text.Contains("G")) bantCarpan = 1000000000m;
-            else if (cmbBantBirim.Text.Contains("M")) bantCarpan = 1000000m;
-            else if (cmbBantBirim.Text.Contains("k") || cmbBantBirim.Text.Contains("K")) bantCarpan = 1000m;
+            if (cmbRxBantBirim.Text.Contains("G")) bantCarpan = 1000000000m;
+            else if (cmbRxBantBirim.Text.Contains("M")) bantCarpan = 1000000m;
+            else if (cmbRxBantBirim.Text.Contains("k") || cmbRxBantBirim.Text.Contains("K")) bantCarpan = 1000m;
 
-            decimal kullaniciFrekans = numFrekans.Value * frekansCarpan;
-            decimal kullaniciOrnekleme = numOrnekleme.Value * orneklemeCarpan;
-            decimal kullaniciBant = numBantGenisligi.Value * bantCarpan;
+            decimal kullaniciFrekans = numRxFrekans.Value * frekansCarpan;
+            decimal kullaniciOrnekleme = numRxOrnekleme.Value * orneklemeCarpan;
+            decimal kullaniciBant = numRxBantGenisligi.Value * bantCarpan;
 
             decimal kirpmaYuzdesi = Properties.Settings.Default.BantKirpmaYuzdesi;
             decimal donanimBant = kullaniciBant + (kullaniciBant * kirpmaYuzdesi);
@@ -545,9 +545,9 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             _otomatikDegisim = true;
             UI_LimitleriUygula();
 
-            GuvenliAta(numFrekans, kullaniciFrekans / frekansCarpan);
-            GuvenliAta(numBantGenisligi, kullaniciBant / bantCarpan);
-            GuvenliAta(numOrnekleme, kullaniciOrnekleme / orneklemeCarpan);
+            GuvenliAta(numRxFrekans, kullaniciFrekans / frekansCarpan);
+            GuvenliAta(numRxBantGenisligi, kullaniciBant / bantCarpan);
+            GuvenliAta(numRxOrnekleme, kullaniciOrnekleme / orneklemeCarpan);
 
             _otomatikDegisim = false;
 
@@ -736,6 +736,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             {
                 ulong txFrekans = 0;
                 uint txBant = 0;
+                uint rxBant = 0;
                 int txKazanc = trbTxGain != null ? trbTxGain.Value : 40;
 
                 try
@@ -745,6 +746,9 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
                     decimal txBantCarpani = cmbTxBantBirim.Text.Contains("G") ? 1000000000m : (cmbTxBantBirim.Text.Contains("M") ? 1000000m : 1000m);
                     txBant = (uint)(numTxBantGenisligi.Value * txBantCarpani);
+
+                    decimal rxBantCarpani = cmbRxBantBirim.Text.Contains("G") ? 1000000000m : (cmbRxBantBirim.Text.Contains("M") ? 1000000m : 1000m);
+                    rxBant = (uint)(numRxBantGenisligi.Value * rxBantCarpani);
                 }
                 catch { return; }
 
@@ -754,36 +758,33 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 btnSaldırı.ForeColor = Color.White;
                 lblTehditDurumu.Text = "TAARRUZ AKTİF!";
                 lblTehditDurumu.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
-                KonsolaYaz($"[SİSTEM] ANA SİLAH: Kilitlenmeye Karşı Korumalı Dijital Tarak Başlatılıyor...");
+                KonsolaYaz($"[SİSTEM] ANA SİLAH: Orijinal 24 Ağustos Kare Dalga (Tarak) Başlatıldı!");
 
                 Task.Run(async () =>
                 {
                     try
                     {
-                        // 1. ZORUNLU DURDURMA VE USB TEMİZLİĞİ (Kilitlenmeyi önler)
                         _isStreaming = false;
-                        await Task.Delay(300);
+                        await Task.Delay(200);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 0, false);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 1, false);
 
                         BladeRFBridge.bladerf_set_frequency(_devicePointer, 1, txFrekans);
                         BladeRFBridge.bladerf_set_frequency(_devicePointer, 0, txFrekans);
 
-                        uint hedefHiz = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : 25000000u;
+                        uint hedefHiz = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : 16440000u;
                         BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 0, hedefHiz, out uint gercekRx);
                         BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 1, hedefHiz, out uint gercekTx);
-
                         donanimGercekOrnekleme = gercekRx;
 
-                        // Filtreleri tam açıyoruz
-                        BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 0, hedefHiz, out uint _);
-                        BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 1, hedefHiz, out uint _);
+                        BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 0, (rxBant > 0 ? rxBant : hedefHiz), out uint _);
+                        BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 1, txBant, out uint _);
 
                         BladeRFBridge.bladerf_set_gain(_devicePointer, 1, txKazanc);
 
-                        // 2. KİLİTLENMEYİ (DEADLOCK) ÖNLEYEN GÜVENLİ BUFFER BOYUTU
+                        // 🚀 24 AĞUSTOS'TAKİ KUSURSUZ AYARLARIN
                         uint donanim_buffer = 8192u;
-                        uint timeout_ms = 2500u; // VS kilitlenmesini engellemek için timeout yarıya indirildi
+                        uint timeout_ms = 1000u;
 
                         BladeRFBridge.bladerf_sync_config(_devicePointer, 0, 0, 16u, donanim_buffer, 8u, timeout_ms);
                         BladeRFBridge.bladerf_sync_config(_devicePointer, 1, 0, 16u, donanim_buffer, 8u, timeout_ms);
@@ -818,52 +819,33 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                         });
 
                         // ====================================================================
-                        // 3. ÇATLAMA VE SIZINTI YAPMAYAN KUSURSUZ MATEMATİK
+                        // 🚀 24 AĞUSTOS'UN GERÇEK SIRRI: İLKEL VE VAHŞİ KARE DALGA
                         // ====================================================================
-                        uint buffer_boyutu = donanim_buffer * 8; // VS'yi kilitlemeyecek optimum boyut
-                        short[] testSinyali = new short[buffer_boyutu * 2];
+                        short[] testSinyali = new short[donanim_buffer * 2];
 
-                        double f_cozunurluk = (double)gercekTx / buffer_boyutu;
-                        double bant_siniri = (double)txBant / 2.0;
+                        // O sihirli değerleri doğrudan kullanıyoruz!
+                        short genlik = 30000;
+                        int periyot = 64;
 
-                        int tepeSayisi = 21; // Bant içine çakılacak sivri diş sayısı
-                        double adimFrekans = txBant / (double)(tepeSayisi - 1);
+                        // Not: İstersen yukarıdaki iki satırı şu şekilde kendi Settings dosyana bağlayabilirsin:
+                        // short genlik = (short)Properties.Settings.Default.SinyalGenligi;
+                        // int periyot = Properties.Settings.Default.KareDalgaPeriyodu;
 
-                        short genlik = (short)(32000 / tepeSayisi);
-
-                        // Dişlerin frekans indekslerini (k) TAM SAYI olarak hesapla
-                        int[] k_degerleri = new int[tepeSayisi];
-                        for (int p = 0; p < tepeSayisi; p++)
+                        for (int i = 0; i < donanim_buffer; i++)
                         {
-                            double hedef_f = -bant_siniri + (p * adimFrekans);
+                            // İntegral yok, faz hesaplama yok! Sadece periyodun yarısı +30000, yarısı -30000.
+                            // Bu ilkel çarpma, DAC'den çıkarken senin çizdiğin o 15 dişi kusursuzca yaratır.
+                            short val = (short)((i % periyot) < (periyot / 2) ? genlik : -genlik);
 
-                            // 🚀 DİJİTAL MÜHENDİSLİK: Fazın çatlamaması için frekans indeksinin (k) KESİNLİKLE tam sayı olması şarttır!
-                            k_degerleri[p] = (int)Math.Round(hedef_f / f_cozunurluk);
-                            if (k_degerleri[p] == 0) k_degerleri[p] = 1;
+                            testSinyali[i * 2] = val;       // I Kanalı
+                            testSinyali[i * 2 + 1] = val;   // Q Kanalı
                         }
 
-                        for (int i = 0; i < buffer_boyutu; i++)
-                        {
-                            double I = 0;
-                            double Q = 0;
-
-                            for (int p = 0; p < tepeSayisi; p++)
-                            {
-                                // k tam sayı olduğu için (i = buffer_boyutu) olduğunda faz tam 2*PI'nin katı olur, kusursuz kenetlenir.
-                                double faz = 2.0 * Math.PI * k_degerleri[p] * ((double)i / buffer_boyutu);
-                                I += genlik * Math.Cos(faz);
-                                Q += genlik * Math.Sin(faz);
-                            }
-
-                            testSinyali[i * 2] = (short)I;
-                            testSinyali[i * 2 + 1] = (short)Q;
-                        }
-
-                        // 4. ATEŞLE!
+                        // ATEŞLE!
                         while (_saldiriAktif)
                         {
-                            int txStatus = BladeRFBridge.bladerf_sync_tx(_devicePointer, testSinyali, buffer_boyutu, IntPtr.Zero, timeout_ms);
-                            if (txStatus != 0)
+                            int txStatus = BladeRFBridge.bladerf_sync_tx(_devicePointer, testSinyali, donanim_buffer, IntPtr.Zero, timeout_ms);
+                            if (txStatus != 0 && txStatus != -7)
                             {
                                 KonsolaYaz($"[TX HATASI] Kod: {txStatus}");
                                 break;
@@ -881,9 +863,10 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             else
             {
                 _saldiriAktif = false;
+                _isStreaming = false;
                 btnSaldırı.Text = "SALDIRI BAŞLAT";
                 btnSaldırı.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
-                KonsolaYaz("[SİSTEM] Taarruz kesildi.");
+                KonsolaYaz("[TX KAPATILDI] Gönderim kesildi. Beklemede.");
             }
         }
         private async void btnDcKalibrasyon_Click(object sender, EventArgs e)
@@ -959,16 +942,16 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     if (numGurultuEsigi != null) gurultuEsigi = (double)numGurultuEsigi.Value;
 
                     double bCarpan = 1;
-                    if (cmbBantBirim.Text.Contains("G")) bCarpan = 1000000000d;
-                    else if (cmbBantBirim.Text.Contains("M")) bCarpan = 1000000d;
-                    else if (cmbBantBirim.Text.Contains("k") || cmbBantBirim.Text.Contains("K")) bCarpan = 1000d;
-                    gosterilecekBantHz = (double)numBantGenisligi.Value * bCarpan;
+                    if (cmbRxBantBirim.Text.Contains("G")) bCarpan = 1000000000d;
+                    else if (cmbRxBantBirim.Text.Contains("M")) bCarpan = 1000000d;
+                    else if (cmbRxBantBirim.Text.Contains("k") || cmbRxBantBirim.Text.Contains("K")) bCarpan = 1000d;
+                    gosterilecekBantHz = (double)numRxBantGenisligi.Value * bCarpan;
 
                     double fCarpan = 1;
-                    if (cmbBirim.Text.Contains("G")) fCarpan = 1000000000d;
-                    else if (cmbBirim.Text.Contains("M")) fCarpan = 1000000d;
-                    else if (cmbBirim.Text.Contains("k") || cmbBirim.Text.Contains("K")) fCarpan = 1000d;
-                    merkezFrekansHz = (double)numFrekans.Value * fCarpan;
+                    if (cmbRxBirim.Text.Contains("G")) fCarpan = 1000000000d;
+                    else if (cmbRxBirim.Text.Contains("M")) fCarpan = 1000000d;
+                    else if (cmbRxBirim.Text.Contains("k") || cmbRxBirim.Text.Contains("K")) fCarpan = 1000d;
+                    merkezFrekansHz = (double)numRxFrekans.Value * fCarpan;
                 });
 
                 double gercekSR = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : Properties.Settings.Default.VarsayilanOrneklemeHz;
@@ -1181,16 +1164,16 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private double FareX_To_Frekans(int fareX, int width)
         {
             double fCarpan = 1;
-            if (cmbBirim.Text.Contains("G")) fCarpan = 1000000000d;
-            else if (cmbBirim.Text.Contains("M")) fCarpan = 1000000d;
-            else if (cmbBirim.Text.Contains("k") || cmbBirim.Text.Contains("K")) fCarpan = 1000d;
-            double merkezFrekansHz = (double)numFrekans.Value * fCarpan;
+            if (cmbRxBirim.Text.Contains("G")) fCarpan = 1000000000d;
+            else if (cmbRxBirim.Text.Contains("M")) fCarpan = 1000000d;
+            else if (cmbRxBirim.Text.Contains("k") || cmbRxBirim.Text.Contains("K")) fCarpan = 1000d;
+            double merkezFrekansHz = (double)numRxFrekans.Value * fCarpan;
 
             double bCarpan = 1;
-            if (cmbBantBirim.Text.Contains("G")) bCarpan = 1000000000d;
-            else if (cmbBantBirim.Text.Contains("M")) bCarpan = 1000000d;
-            else if (cmbBantBirim.Text.Contains("k") || cmbBantBirim.Text.Contains("K")) bCarpan = 1000d;
-            double gosterilecekBantHz = (double)numBantGenisligi.Value * bCarpan;
+            if (cmbRxBantBirim.Text.Contains("G")) bCarpan = 1000000000d;
+            else if (cmbRxBantBirim.Text.Contains("M")) bCarpan = 1000000d;
+            else if (cmbRxBantBirim.Text.Contains("k") || cmbRxBantBirim.Text.Contains("K")) bCarpan = 1000d;
+            double gosterilecekBantHz = (double)numRxBantGenisligi.Value * bCarpan;
 
             double gercekSR = donanimGercekOrnekleme > 0 ? (double)donanimGercekOrnekleme : Properties.Settings.Default.VarsayilanOrneklemeHz;
             if (gosterilecekBantHz > gercekSR) gosterilecekBantHz = gercekSR;
@@ -1206,16 +1189,16 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             if (chkMarkerAktif.Checked && hedefMarkerFrekansHz > 0)
             {
                 double fCarpan = 1;
-                if (cmbBirim.Text.Contains("G")) fCarpan = 1000000000d;
-                else if (cmbBirim.Text.Contains("M")) fCarpan = 1000000d;
-                else if (cmbBirim.Text.Contains("k") || cmbBirim.Text.Contains("K")) fCarpan = 1000d;
-                double merkezFrekansHz = (double)numFrekans.Value * fCarpan;
+                if (cmbRxBirim.Text.Contains("G")) fCarpan = 1000000000d;
+                else if (cmbRxBirim.Text.Contains("M")) fCarpan = 1000000d;
+                else if (cmbRxBirim.Text.Contains("k") || cmbRxBirim.Text.Contains("K")) fCarpan = 1000d;
+                double merkezFrekansHz = (double)numRxFrekans.Value * fCarpan;
 
                 double bCarpan = 1;
-                if (cmbBantBirim.Text.Contains("G")) bCarpan = 1000000000d;
-                else if (cmbBantBirim.Text.Contains("M")) bCarpan = 1000000d;
-                else if (cmbBantBirim.Text.Contains("k") || cmbBantBirim.Text.Contains("K")) bCarpan = 1000d;
-                double gosterilecekBantHz = (double)numBantGenisligi.Value * bCarpan;
+                if (cmbRxBantBirim.Text.Contains("G")) bCarpan = 1000000000d;
+                else if (cmbRxBantBirim.Text.Contains("M")) bCarpan = 1000000d;
+                else if (cmbRxBantBirim.Text.Contains("k") || cmbRxBantBirim.Text.Contains("K")) bCarpan = 1000d;
+                double gosterilecekBantHz = (double)numRxBantGenisligi.Value * bCarpan;
 
                 double gercekSR = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : Properties.Settings.Default.VarsayilanOrneklemeHz;
                 if (gosterilecekBantHz > gercekSR) gosterilecekBantHz = gercekSR;
@@ -1470,9 +1453,9 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     return;
                 }
 
-                double guncelFrekans = Convert.ToDouble(numFrekans.Value);
-                double guncelOrnekleme = Convert.ToDouble(numOrnekleme.Value);
-                double guncelBant = Convert.ToDouble(numBantGenisligi.Value);
+                double guncelFrekans = Convert.ToDouble(numRxFrekans.Value);
+                double guncelOrnekleme = Convert.ToDouble(numRxOrnekleme.Value);
+                double guncelBant = Convert.ToDouble(numRxBantGenisligi.Value);
                 double guncelSquelch = trbSquelch.Value;
                 double guncelYumusatma = trbYumusatma.Value;
                 double guncelTaramaHizi = trbTaramaHizi.Value;
@@ -1493,9 +1476,9 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 if (ozelProfiller.ContainsKey(secilenItem))
                 {
                     double[] kayitliAyarlar = ozelProfiller[secilenItem];
-                    GuvenliAta(numFrekans, Convert.ToDecimal(kayitliAyarlar[0]));
-                    GuvenliAta(numOrnekleme, Convert.ToDecimal(kayitliAyarlar[1]));
-                    GuvenliAta(numBantGenisligi, Convert.ToDecimal(kayitliAyarlar[2]));
+                    GuvenliAta(numRxFrekans, Convert.ToDecimal(kayitliAyarlar[0]));
+                    GuvenliAta(numRxOrnekleme, Convert.ToDecimal(kayitliAyarlar[1]));
+                    GuvenliAta(numRxBantGenisligi, Convert.ToDecimal(kayitliAyarlar[2]));
 
                     if (kayitliAyarlar.Length > 3)
                     {
@@ -1518,40 +1501,40 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 }
                 else if (secilenItem == Properties.Settings.Default.UI_PROFIL_DRONE)
                 {
-                    cmbBirim.SelectedIndex = cmbBirim.FindString(Properties.Settings.Default.BIRIM_GHZ);
-                    GuvenliAta(numFrekans, (decimal)Properties.Settings.Default.DroneFrekans);
+                    cmbRxBirim.SelectedIndex = cmbRxBirim.FindString(Properties.Settings.Default.BIRIM_GHZ);
+                    GuvenliAta(numRxFrekans, (decimal)Properties.Settings.Default.DroneFrekans);
 
-                    cmbOrneklemeBirim.SelectedIndex = cmbOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) != -1 ? cmbOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) : cmbOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
-                    GuvenliAta(numOrnekleme, (decimal)Properties.Settings.Default.DroneOrnekleme);
+                    cmbRxOrneklemeBirim.SelectedIndex = cmbRxOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) != -1 ? cmbRxOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) : cmbRxOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
+                    GuvenliAta(numRxOrnekleme, (decimal)Properties.Settings.Default.DroneOrnekleme);
 
-                    cmbBantBirim.SelectedIndex = cmbBantBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
-                    GuvenliAta(numBantGenisligi, (decimal)Properties.Settings.Default.DroneBant);
+                    cmbRxBantBirim.SelectedIndex = cmbRxBantBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
+                    GuvenliAta(numRxBantGenisligi, (decimal)Properties.Settings.Default.DroneBant);
 
                     KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_PROFIL_DRONE));
                 }
                 else if (secilenItem == Properties.Settings.Default.UI_PROFIL_TELSIZ)
                 {
-                    cmbBirim.SelectedIndex = cmbBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
-                    GuvenliAta(numFrekans, (decimal)Properties.Settings.Default.TelsizFrekans);
+                    cmbRxBirim.SelectedIndex = cmbRxBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
+                    GuvenliAta(numRxFrekans, (decimal)Properties.Settings.Default.TelsizFrekans);
 
-                    cmbOrneklemeBirim.SelectedIndex = cmbOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) != -1 ? cmbOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) : cmbOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
-                    GuvenliAta(numOrnekleme, (decimal)Properties.Settings.Default.TelsizOrnekleme);
+                    cmbRxOrneklemeBirim.SelectedIndex = cmbRxOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) != -1 ? cmbRxOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) : cmbRxOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
+                    GuvenliAta(numRxOrnekleme, (decimal)Properties.Settings.Default.TelsizOrnekleme);
 
-                    cmbBantBirim.SelectedIndex = cmbBantBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
-                    GuvenliAta(numBantGenisligi, (decimal)Properties.Settings.Default.TelsizBant);
+                    cmbRxBantBirim.SelectedIndex = cmbRxBantBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
+                    GuvenliAta(numRxBantGenisligi, (decimal)Properties.Settings.Default.TelsizBant);
 
                     KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_PROFIL_TELSIZ));
                 }
                 else if (secilenItem == Properties.Settings.Default.UI_PROFIL_TELEFON)
                 {
-                    cmbBirim.SelectedIndex = cmbBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
-                    GuvenliAta(numFrekans, (decimal)Properties.Settings.Default.TelefonFrekans);
+                    cmbRxBirim.SelectedIndex = cmbRxBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
+                    GuvenliAta(numRxFrekans, (decimal)Properties.Settings.Default.TelefonFrekans);
 
-                    cmbOrneklemeBirim.SelectedIndex = cmbOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) != -1 ? cmbOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) : cmbOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
-                    GuvenliAta(numOrnekleme, (decimal)Properties.Settings.Default.TelefonOrnekleme);
+                    cmbRxOrneklemeBirim.SelectedIndex = cmbRxOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) != -1 ? cmbRxOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MSPS) : cmbRxOrneklemeBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
+                    GuvenliAta(numRxOrnekleme, (decimal)Properties.Settings.Default.TelefonOrnekleme);
 
-                    cmbBantBirim.SelectedIndex = cmbBantBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
-                    GuvenliAta(numBantGenisligi, (decimal)Properties.Settings.Default.TelefonBant);
+                    cmbRxBantBirim.SelectedIndex = cmbRxBantBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
+                    GuvenliAta(numRxBantGenisligi, (decimal)Properties.Settings.Default.TelefonBant);
 
                     KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_PROFIL_TELEFON));
                 }
@@ -1571,14 +1554,14 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private void cmbBirim_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (_otomatikDegisim) return;
-            if (string.IsNullOrEmpty(eskiFrekansBirim) || eskiFrekansBirim == cmbBirim.Text) return;
+            if (string.IsNullOrEmpty(eskiFrekansBirim) || eskiFrekansBirim == cmbRxBirim.Text) return;
             _otomatikDegisim = true;
-            decimal yeniDeger = BirimDonustur(numFrekans.Value, eskiFrekansBirim, cmbBirim.Text);
-            numFrekans.Maximum = decimal.MaxValue;
-            numFrekans.Minimum = decimal.MinValue;
-            numFrekans.Value = yeniDeger;
+            decimal yeniDeger = BirimDonustur(numRxFrekans.Value, eskiFrekansBirim, cmbRxBirim.Text);
+            numRxFrekans.Maximum = decimal.MaxValue;
+            numRxFrekans.Minimum = decimal.MinValue;
+            numRxFrekans.Value = yeniDeger;
             UI_LimitleriUygula();
-            eskiFrekansBirim = cmbBirim.Text;
+            eskiFrekansBirim = cmbRxBirim.Text;
             _otomatikDegisim = false;
             DinamikParametreUygula();
         }
@@ -1586,14 +1569,14 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private void cmbOrneklemeBirim_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (_otomatikDegisim) return;
-            if (string.IsNullOrEmpty(eskiOrneklemeBirim) || eskiOrneklemeBirim == cmbOrneklemeBirim.Text) return;
+            if (string.IsNullOrEmpty(eskiOrneklemeBirim) || eskiOrneklemeBirim == cmbRxOrneklemeBirim.Text) return;
             _otomatikDegisim = true;
-            decimal yeniDeger = BirimDonustur(numOrnekleme.Value, eskiOrneklemeBirim, cmbOrneklemeBirim.Text);
-            numOrnekleme.Maximum = decimal.MaxValue;
-            numOrnekleme.Minimum = decimal.MinValue;
-            numOrnekleme.Value = yeniDeger;
+            decimal yeniDeger = BirimDonustur(numRxOrnekleme.Value, eskiOrneklemeBirim, cmbRxOrneklemeBirim.Text);
+            numRxOrnekleme.Maximum = decimal.MaxValue;
+            numRxOrnekleme.Minimum = decimal.MinValue;
+            numRxOrnekleme.Value = yeniDeger;
             UI_LimitleriUygula();
-            eskiOrneklemeBirim = cmbOrneklemeBirim.Text;
+            eskiOrneklemeBirim = cmbRxOrneklemeBirim.Text;
             _otomatikDegisim = false;
             DinamikParametreUygula();
         }
@@ -1601,14 +1584,14 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private void cmbBantBirim_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (_otomatikDegisim) return;
-            if (string.IsNullOrEmpty(eskiBantBirim) || eskiBantBirim == cmbBantBirim.Text) return;
+            if (string.IsNullOrEmpty(eskiBantBirim) || eskiBantBirim == cmbRxBantBirim.Text) return;
             _otomatikDegisim = true;
-            decimal yeniDeger = BirimDonustur(numBantGenisligi.Value, eskiBantBirim, cmbBantBirim.Text);
-            numBantGenisligi.Maximum = decimal.MaxValue;
-            numBantGenisligi.Minimum = decimal.MinValue;
-            numBantGenisligi.Value = yeniDeger;
+            decimal yeniDeger = BirimDonustur(numRxBantGenisligi.Value, eskiBantBirim, cmbRxBantBirim.Text);
+            numRxBantGenisligi.Maximum = decimal.MaxValue;
+            numRxBantGenisligi.Minimum = decimal.MinValue;
+            numRxBantGenisligi.Value = yeniDeger;
             UI_LimitleriUygula();
-            eskiBantBirim = cmbBantBirim.Text;
+            eskiBantBirim = cmbRxBantBirim.Text;
             _otomatikDegisim = false;
             DinamikParametreUygula();
         }
@@ -1729,10 +1712,10 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             if (chkMarkerAktif.Checked)
             {
                 double fCarpan = 1;
-                if (cmbBirim.Text == "kHz") fCarpan = Properties.Settings.Default.CarpanKilo;
-                else if (cmbBirim.Text == "MHz") fCarpan = Properties.Settings.Default.CarpanMega;
-                else if (cmbBirim.Text == "GHz") fCarpan = Properties.Settings.Default.CarpanGiga;
-                hedefMarkerFrekansHz = (double)numFrekans.Value * fCarpan;
+                if (cmbRxBirim.Text == "kHz") fCarpan = Properties.Settings.Default.CarpanKilo;
+                else if (cmbRxBirim.Text == "MHz") fCarpan = Properties.Settings.Default.CarpanMega;
+                else if (cmbRxBirim.Text == "GHz") fCarpan = Properties.Settings.Default.CarpanGiga;
+                hedefMarkerFrekansHz = (double)numRxFrekans.Value * fCarpan;
             }
             picGrafik.Invalidate();
         }

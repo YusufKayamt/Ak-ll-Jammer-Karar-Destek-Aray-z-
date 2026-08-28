@@ -43,7 +43,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("64")]
+        [global::System.Configuration.DefaultSettingValueAttribute("128")]
         public int KareDalgaPeriyodu {
             get {
                 return ((int)(this["KareDalgaPeriyodu"]));
@@ -947,7 +947,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2.4")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
         public decimal DroneFrekans {
             get {
                 return ((decimal)(this["DroneFrekans"]));
@@ -956,7 +956,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("22.0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("20.0")]
         public decimal DroneOrnekleme {
             get {
                 return ((decimal)(this["DroneOrnekleme"]));
@@ -965,7 +965,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20.0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("5.0")]
         public decimal DroneBant {
             get {
                 return ((decimal)(this["DroneBant"]));

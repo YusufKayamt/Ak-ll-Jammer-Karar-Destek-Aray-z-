@@ -9,7 +9,7 @@
       <Value Profile="(Default)">30000</Value>
     </Setting>
     <Setting Name="KareDalgaPeriyodu" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">64</Value>
+      <Value Profile="(Default)">128</Value>
     </Setting>
     <Setting Name="DahiliTestKazanci" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">10</Value>

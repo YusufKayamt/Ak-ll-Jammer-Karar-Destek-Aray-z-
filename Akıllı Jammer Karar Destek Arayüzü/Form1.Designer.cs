@@ -34,13 +34,13 @@
             label1 = new Label();
             label2 = new Label();
             label3 = new Label();
-            numFrekans = new NumericUpDown();
-            cmbBirim = new ComboBox();
+            numRxFrekans = new NumericUpDown();
+            cmbRxBirim = new ComboBox();
             rtbKonsol = new RichTextBox();
-            numOrnekleme = new NumericUpDown();
-            numBantGenisligi = new NumericUpDown();
-            cmbOrneklemeBirim = new ComboBox();
-            cmbBantBirim = new ComboBox();
+            numRxOrnekleme = new NumericUpDown();
+            numRxBantGenisligi = new NumericUpDown();
+            cmbRxOrneklemeBirim = new ComboBox();
+            cmbRxBantBirim = new ComboBox();
             grpDonanim = new GroupBox();
             lblTxKazanciDegeri = new Label();
             label10 = new Label();
@@ -97,9 +97,9 @@
             numTxFrekans = new NumericUpDown();
             cmbTxBantBirim = new ComboBox();
             label20 = new Label();
-            ((System.ComponentModel.ISupportInitialize)numFrekans).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numOrnekleme).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)numBantGenisligi).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numRxFrekans).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numRxOrnekleme).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numRxBantGenisligi).BeginInit();
             grpDonanim.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)trbTxGain).BeginInit();
             ((System.ComponentModel.ISupportInitialize)trbRxKazanci).BeginInit();
@@ -171,30 +171,30 @@
             label3.TabIndex = 4;
             label3.Text = "Bant Genişliği";
             // 
-            // numFrekans
+            // numRxFrekans
             // 
-            numFrekans.Cursor = Cursors.Hand;
-            numFrekans.DecimalPlaces = 3;
-            numFrekans.Location = new Point(135, 31);
-            numFrekans.Maximum = new decimal(new int[] { 1705032704, 1, 0, 0 });
-            numFrekans.Name = "numFrekans";
-            numFrekans.Size = new Size(100, 27);
-            numFrekans.TabIndex = 9;
-            numFrekans.ThousandsSeparator = true;
-            numFrekans.Value = new decimal(new int[] { 2400, 0, 0, 0 });
-            numFrekans.ValueChanged += numFrekans_ValueChanged;
+            numRxFrekans.Cursor = Cursors.Hand;
+            numRxFrekans.DecimalPlaces = 3;
+            numRxFrekans.Location = new Point(135, 31);
+            numRxFrekans.Maximum = new decimal(new int[] { 1705032704, 1, 0, 0 });
+            numRxFrekans.Name = "numRxFrekans";
+            numRxFrekans.Size = new Size(100, 27);
+            numRxFrekans.TabIndex = 9;
+            numRxFrekans.ThousandsSeparator = true;
+            numRxFrekans.Value = new decimal(new int[] { 2400, 0, 0, 0 });
+            numRxFrekans.ValueChanged += numFrekans_ValueChanged;
             // 
-            // cmbBirim
+            // cmbRxBirim
             // 
-            cmbBirim.Cursor = Cursors.Hand;
-            cmbBirim.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbBirim.FormattingEnabled = true;
-            cmbBirim.Items.AddRange(new object[] { "MHz", "GHz" });
-            cmbBirim.Location = new Point(240, 31);
-            cmbBirim.Name = "cmbBirim";
-            cmbBirim.Size = new Size(72, 28);
-            cmbBirim.TabIndex = 10;
-            cmbBirim.SelectedIndexChanged += cmbBirim_SelectedIndexChanged;
+            cmbRxBirim.Cursor = Cursors.Hand;
+            cmbRxBirim.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbRxBirim.FormattingEnabled = true;
+            cmbRxBirim.Items.AddRange(new object[] { "MHz", "GHz" });
+            cmbRxBirim.Location = new Point(240, 31);
+            cmbRxBirim.Name = "cmbRxBirim";
+            cmbRxBirim.Size = new Size(72, 28);
+            cmbRxBirim.TabIndex = 10;
+            cmbRxBirim.SelectedIndexChanged += cmbBirim_SelectedIndexChanged;
             // 
             // rtbKonsol
             // 
@@ -205,55 +205,55 @@
             rtbKonsol.TabIndex = 11;
             rtbKonsol.Text = "";
             // 
-            // numOrnekleme
+            // numRxOrnekleme
             // 
-            numOrnekleme.Cursor = Cursors.Hand;
-            numOrnekleme.DecimalPlaces = 3;
-            numOrnekleme.Location = new Point(135, 66);
-            numOrnekleme.Maximum = new decimal(new int[] { 61440000, 0, 0, 0 });
-            numOrnekleme.Name = "numOrnekleme";
-            numOrnekleme.Size = new Size(100, 27);
-            numOrnekleme.TabIndex = 15;
-            numOrnekleme.ThousandsSeparator = true;
-            numOrnekleme.Value = new decimal(new int[] { 24000, 0, 0, 0 });
+            numRxOrnekleme.Cursor = Cursors.Hand;
+            numRxOrnekleme.DecimalPlaces = 3;
+            numRxOrnekleme.Location = new Point(135, 66);
+            numRxOrnekleme.Maximum = new decimal(new int[] { 61440000, 0, 0, 0 });
+            numRxOrnekleme.Name = "numRxOrnekleme";
+            numRxOrnekleme.Size = new Size(100, 27);
+            numRxOrnekleme.TabIndex = 15;
+            numRxOrnekleme.ThousandsSeparator = true;
+            numRxOrnekleme.Value = new decimal(new int[] { 24000, 0, 0, 0 });
             // 
-            // numBantGenisligi
+            // numRxBantGenisligi
             // 
-            numBantGenisligi.Cursor = Cursors.Hand;
-            numBantGenisligi.DecimalPlaces = 3;
-            numBantGenisligi.Location = new Point(135, 99);
-            numBantGenisligi.Maximum = new decimal(new int[] { 56000000, 0, 0, 0 });
-            numBantGenisligi.Name = "numBantGenisligi";
-            numBantGenisligi.Size = new Size(100, 27);
-            numBantGenisligi.TabIndex = 16;
-            numBantGenisligi.ThousandsSeparator = true;
-            numBantGenisligi.Value = new decimal(new int[] { 20000, 0, 0, 0 });
+            numRxBantGenisligi.Cursor = Cursors.Hand;
+            numRxBantGenisligi.DecimalPlaces = 3;
+            numRxBantGenisligi.Location = new Point(135, 99);
+            numRxBantGenisligi.Maximum = new decimal(new int[] { 56000000, 0, 0, 0 });
+            numRxBantGenisligi.Name = "numRxBantGenisligi";
+            numRxBantGenisligi.Size = new Size(100, 27);
+            numRxBantGenisligi.TabIndex = 16;
+            numRxBantGenisligi.ThousandsSeparator = true;
+            numRxBantGenisligi.Value = new decimal(new int[] { 20000, 0, 0, 0 });
             // 
-            // cmbOrneklemeBirim
+            // cmbRxOrneklemeBirim
             // 
-            cmbOrneklemeBirim.Cursor = Cursors.Hand;
-            cmbOrneklemeBirim.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbOrneklemeBirim.FormattingEnabled = true;
-            cmbOrneklemeBirim.Items.AddRange(new object[] { "kSps ", "MSps " });
-            cmbOrneklemeBirim.Location = new Point(240, 66);
-            cmbOrneklemeBirim.Name = "cmbOrneklemeBirim";
-            cmbOrneklemeBirim.Size = new Size(72, 28);
-            cmbOrneklemeBirim.TabIndex = 17;
-            cmbOrneklemeBirim.SelectedIndexChanged += cmbOrneklemeBirim_SelectedIndexChanged;
+            cmbRxOrneklemeBirim.Cursor = Cursors.Hand;
+            cmbRxOrneklemeBirim.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbRxOrneklemeBirim.FormattingEnabled = true;
+            cmbRxOrneklemeBirim.Items.AddRange(new object[] { "kSps ", "MSps " });
+            cmbRxOrneklemeBirim.Location = new Point(240, 66);
+            cmbRxOrneklemeBirim.Name = "cmbRxOrneklemeBirim";
+            cmbRxOrneklemeBirim.Size = new Size(72, 28);
+            cmbRxOrneklemeBirim.TabIndex = 17;
+            cmbRxOrneklemeBirim.SelectedIndexChanged += cmbOrneklemeBirim_SelectedIndexChanged;
             // 
-            // cmbBantBirim
+            // cmbRxBantBirim
             // 
-            cmbBantBirim.Cursor = Cursors.Hand;
-            cmbBantBirim.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbBantBirim.FormattingEnabled = true;
-            cmbBantBirim.Items.AddRange(new object[] { "kHz", "MHz" });
-            cmbBantBirim.Location = new Point(240, 99);
-            cmbBantBirim.Name = "cmbBantBirim";
-            cmbBantBirim.RightToLeft = RightToLeft.No;
-            cmbBantBirim.Size = new Size(73, 28);
-            cmbBantBirim.TabIndex = 18;
-            cmbBantBirim.Tag = "";
-            cmbBantBirim.SelectedIndexChanged += cmbBantBirim_SelectedIndexChanged;
+            cmbRxBantBirim.Cursor = Cursors.Hand;
+            cmbRxBantBirim.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbRxBantBirim.FormattingEnabled = true;
+            cmbRxBantBirim.Items.AddRange(new object[] { "kHz", "MHz" });
+            cmbRxBantBirim.Location = new Point(240, 99);
+            cmbRxBantBirim.Name = "cmbRxBantBirim";
+            cmbRxBantBirim.RightToLeft = RightToLeft.No;
+            cmbRxBantBirim.Size = new Size(73, 28);
+            cmbRxBantBirim.TabIndex = 18;
+            cmbRxBantBirim.Tag = "";
+            cmbRxBantBirim.SelectedIndexChanged += cmbBantBirim_SelectedIndexChanged;
             // 
             // grpDonanim
             // 
@@ -751,13 +751,13 @@
             grpGelismisAyarlar.Controls.Add(label14);
             grpGelismisAyarlar.Controls.Add(label13);
             grpGelismisAyarlar.Controls.Add(label12);
-            grpGelismisAyarlar.Controls.Add(numOrnekleme);
-            grpGelismisAyarlar.Controls.Add(cmbOrneklemeBirim);
+            grpGelismisAyarlar.Controls.Add(numRxOrnekleme);
+            grpGelismisAyarlar.Controls.Add(cmbRxOrneklemeBirim);
             grpGelismisAyarlar.Controls.Add(label1);
-            grpGelismisAyarlar.Controls.Add(cmbBirim);
-            grpGelismisAyarlar.Controls.Add(numBantGenisligi);
-            grpGelismisAyarlar.Controls.Add(numFrekans);
-            grpGelismisAyarlar.Controls.Add(cmbBantBirim);
+            grpGelismisAyarlar.Controls.Add(cmbRxBirim);
+            grpGelismisAyarlar.Controls.Add(numRxBantGenisligi);
+            grpGelismisAyarlar.Controls.Add(numRxFrekans);
+            grpGelismisAyarlar.Controls.Add(cmbRxBantBirim);
             grpGelismisAyarlar.Controls.Add(label3);
             grpGelismisAyarlar.Controls.Add(label2);
             grpGelismisAyarlar.Location = new Point(1040, 137);
@@ -1001,9 +1001,9 @@
             StartPosition = FormStartPosition.CenterParent;
             Text = "ATEL Akıllı Jammer Karar Destek Arayüzü";
             Load += Form1_Load;
-            ((System.ComponentModel.ISupportInitialize)numFrekans).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numOrnekleme).EndInit();
-            ((System.ComponentModel.ISupportInitialize)numBantGenisligi).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numRxFrekans).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numRxOrnekleme).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numRxBantGenisligi).EndInit();
             grpDonanim.ResumeLayout(false);
             grpDonanim.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)trbTxGain).EndInit();
@@ -1035,13 +1035,13 @@
         private Label label1;
         private Label label2;
         private Label label3;
-        private NumericUpDown numFrekans;
-        private ComboBox cmbBirim;
+        private NumericUpDown numRxFrekans;
+        private ComboBox cmbRxBirim;
         private RichTextBox rtbKonsol;
-        private NumericUpDown numOrnekleme;
-        private NumericUpDown numBantGenisligi;
-        private ComboBox cmbOrneklemeBirim;
-        private ComboBox cmbBantBirim;
+        private NumericUpDown numRxOrnekleme;
+        private NumericUpDown numRxBantGenisligi;
+        private ComboBox cmbRxOrneklemeBirim;
+        private ComboBox cmbRxBantBirim;
         private GroupBox grpDonanim;
         private TrackBar trbTxGain;
         private TrackBar trbRxKazanci;
