@@ -43,7 +43,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int bladerf_set_loopback(IntPtr dev, int loopback_mode);
 
-        // KOPYA VE HATALI TANIMLAMALAR SİLİNDİ! TEK VE DOĞRU OLANLAR:
         [DllImport(DllName, CallingConvention = CallingConvention.Cdecl)]
         public static extern int bladerf_sync_config(IntPtr dev, int module, int format, uint num_buffers, uint buffer_size, uint num_transfers, uint stream_timeout);
 

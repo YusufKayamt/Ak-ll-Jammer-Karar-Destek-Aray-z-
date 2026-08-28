@@ -1,16 +1,17 @@
+using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing;
 using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Text.Json;
-using ClosedXML.Excel;
 
 namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 {
@@ -189,7 +190,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
         #region 3. ARAYÜZ (UI), KORUMALI LİMİTLER VE LOG MOTORU
 
-        // ZIRH 1: "ArgumentOutOfRangeException" çökmesini engelleyen güvenli atama metodu
         private void GuvenliAta(NumericUpDown num, decimal deger)
         {
             if (num == null) return;
@@ -282,7 +282,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
             foreach (string dosya in tumDosyalar)
             {
-                string dosyaAdi = Path.GetFileName(dosya);
+                string dosyaAdi = System.IO.Path.GetFileName(dosya);
                 string kucukAd = dosyaAdi.ToLower();
 
                 if (kucukAd.StartsWith("dil_") && (kucukAd.EndsWith(".json") || kucukAd.EndsWith(".txt")))
@@ -736,7 +736,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             {
                 ulong txFrekans = 0;
                 uint txBant = 0;
-                uint rxBant = 0;
                 int txKazanc = trbTxGain != null ? trbTxGain.Value : 40;
 
                 try
@@ -746,9 +745,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
                     decimal txBantCarpani = cmbTxBantBirim.Text.Contains("G") ? 1000000000m : (cmbTxBantBirim.Text.Contains("M") ? 1000000m : 1000m);
                     txBant = (uint)(numTxBantGenisligi.Value * txBantCarpani);
-
-                    decimal rxBantCarpani = cmbRxBantBirim.Text.Contains("G") ? 1000000000m : (cmbRxBantBirim.Text.Contains("M") ? 1000000m : 1000m);
-                    rxBant = (uint)(numRxBantGenisligi.Value * rxBantCarpani);
                 }
                 catch { return; }
 
@@ -758,7 +754,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 btnSaldırı.ForeColor = Color.White;
                 lblTehditDurumu.Text = "TAARRUZ AKTİF!";
                 lblTehditDurumu.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
-                KonsolaYaz($"[SİSTEM] ANA SİLAH: Orijinal 24 Ağustos Kare Dalga (Tarak) Başlatıldı!");
+                KonsolaYaz($"[SİSTEM] ANA SİLAH: Sürekli Dalga (CW) Taarruzu Başlatıldı!");
 
                 Task.Run(async () =>
                 {
@@ -766,88 +762,47 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     {
                         _isStreaming = false;
                         await Task.Delay(200);
+
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 0, false);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 1, false);
 
                         BladeRFBridge.bladerf_set_frequency(_devicePointer, 1, txFrekans);
-                        BladeRFBridge.bladerf_set_frequency(_devicePointer, 0, txFrekans);
 
                         uint hedefHiz = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : 16440000u;
-                        BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 0, hedefHiz, out uint gercekRx);
                         BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 1, hedefHiz, out uint gercekTx);
-                        donanimGercekOrnekleme = gercekRx;
+                        donanimGercekOrnekleme = gercekTx;
 
-                        BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 0, (rxBant > 0 ? rxBant : hedefHiz), out uint _);
                         BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 1, txBant, out uint _);
-
                         BladeRFBridge.bladerf_set_gain(_devicePointer, 1, txKazanc);
 
-                        // 🚀 24 AĞUSTOS'TAKİ KUSURSUZ AYARLARIN
                         uint donanim_buffer = 8192u;
                         uint timeout_ms = 1000u;
 
-                        BladeRFBridge.bladerf_sync_config(_devicePointer, 0, 0, 16u, donanim_buffer, 8u, timeout_ms);
                         BladeRFBridge.bladerf_sync_config(_devicePointer, 1, 0, 16u, donanim_buffer, 8u, timeout_ms);
 
-                        BladeRFBridge.bladerf_enable_module(_devicePointer, 0, true);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 1, true);
 
-                        _isStreaming = true;
-                        _rxIpligiAktif = true;
-                        _ = Task.Run(() =>
-                        {
-                            _okumaIslemiTamamlandi = false;
-                            short[] iqData = new short[donanim_buffer * 2];
-                            if (sonIqHafizasi == null || sonIqHafizasi.Length != iqData.Length) sonIqHafizasi = new short[iqData.Length];
-                            try
-                            {
-                                while (_isStreaming)
-                                {
-                                    int rxStatus = BladeRFBridge.bladerf_sync_rx(_devicePointer, iqData, donanim_buffer, IntPtr.Zero, timeout_ms);
-                                    if (rxStatus == 0 && _isStreaming && !_cizimMesgul)
-                                    {
-                                        Buffer.BlockCopy(iqData, 0, sonIqHafizasi, 0, iqData.Length * 2);
-                                        GrafikGuncelle();
-                                    }
-                                }
-                            }
-                            finally
-                            {
-                                _rxIpligiAktif = false;
-                                _okumaIslemiTamamlandi = true;
-                            }
-                        });
-
-                        // ====================================================================
-                        // 🚀 24 AĞUSTOS'UN GERÇEK SIRRI: İLKEL VE VAHŞİ KARE DALGA
-                        // ====================================================================
                         short[] testSinyali = new short[donanim_buffer * 2];
-
-                        // O sihirli değerleri doğrudan kullanıyoruz!
-                        short genlik = 30000;
-                        int periyot = 64;
-
-                        // Not: İstersen yukarıdaki iki satırı şu şekilde kendi Settings dosyana bağlayabilirsin:
-                        // short genlik = (short)Properties.Settings.Default.SinyalGenligi;
-                        // int periyot = Properties.Settings.Default.KareDalgaPeriyodu;
+                        short genlik = 15000; 
+                        double f_offset = 1000000.0; 
+                        double t_adim = 1.0 / hedefHiz;
 
                         for (int i = 0; i < donanim_buffer; i++)
                         {
-                            // İntegral yok, faz hesaplama yok! Sadece periyodun yarısı +30000, yarısı -30000.
-                            // Bu ilkel çarpma, DAC'den çıkarken senin çizdiğin o 15 dişi kusursuzca yaratır.
-                            short val = (short)((i % periyot) < (periyot / 2) ? genlik : -genlik);
+                            double t = i * t_adim;
+                            double faz = 2.0 * Math.PI * f_offset * t;
 
-                            testSinyali[i * 2] = val;       // I Kanalı
-                            testSinyali[i * 2 + 1] = val;   // Q Kanalı
+                            testSinyali[i * 2] = (short)(genlik * Math.Cos(faz));
+                            testSinyali[i * 2 + 1] = (short)(genlik * Math.Sin(faz));
                         }
 
-                        // ATEŞLE!
                         while (_saldiriAktif)
                         {
                             int txStatus = BladeRFBridge.bladerf_sync_tx(_devicePointer, testSinyali, donanim_buffer, IntPtr.Zero, timeout_ms);
-                            if (txStatus != 0 && txStatus != -7)
+
+                            if (txStatus != 0)
                             {
-                                KonsolaYaz($"[TX HATASI] Kod: {txStatus}");
+                                KonsolaYaz($"[TX DURDU] Hata Kodu: {txStatus} (Cihaz tıkandı)");
                                 break;
                             }
                         }
@@ -1392,7 +1347,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
                     string masaustuYolu = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) ?? "";
                     string raporAdi = string.Format(Properties.Settings.Default.EXCEL_DOSYA_SABLONU, DateTime.Now.ToString("yyyyMMdd_HHmmss"));
-                    string tamYol = Path.Combine(masaustuYolu, raporAdi);
+                    string tamYol = System.IO.Path.Combine(masaustuYolu, raporAdi);
 
                     workbook.SaveAs(tamYol);
                     Cursor.Current = Cursors.Default;
