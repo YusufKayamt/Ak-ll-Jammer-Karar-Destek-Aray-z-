@@ -89,6 +89,7 @@
             btnModMuhendis = new Button();
             btnSaldırı = new Button();
             groupBox2 = new GroupBox();
+            chkTxRxEsle = new CheckBox();
             label16 = new Label();
             label18 = new Label();
             label19 = new Label();
@@ -144,7 +145,7 @@
             // 
             label1.AutoSize = true;
             label1.ForeColor = SystemColors.ActiveCaptionText;
-            label1.Location = new Point(10, 33);
+            label1.Location = new Point(21, 33);
             label1.Name = "label1";
             label1.Size = new Size(62, 20);
             label1.TabIndex = 1;
@@ -155,7 +156,7 @@
             // 
             label2.AutoSize = true;
             label2.ForeColor = SystemColors.ActiveCaptionText;
-            label2.Location = new Point(10, 67);
+            label2.Location = new Point(21, 67);
             label2.Name = "label2";
             label2.Size = new Size(111, 20);
             label2.TabIndex = 3;
@@ -165,7 +166,7 @@
             // 
             label3.AutoSize = true;
             label3.ForeColor = SystemColors.ActiveCaptionText;
-            label3.Location = new Point(10, 101);
+            label3.Location = new Point(21, 101);
             label3.Name = "label3";
             label3.Size = new Size(100, 20);
             label3.TabIndex = 4;
@@ -175,7 +176,7 @@
             // 
             numRxFrekans.Cursor = Cursors.Hand;
             numRxFrekans.DecimalPlaces = 3;
-            numRxFrekans.Location = new Point(135, 31);
+            numRxFrekans.Location = new Point(142, 31);
             numRxFrekans.Maximum = new decimal(new int[] { 1705032704, 1, 0, 0 });
             numRxFrekans.Name = "numRxFrekans";
             numRxFrekans.Size = new Size(100, 27);
@@ -190,7 +191,7 @@
             cmbRxBirim.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbRxBirim.FormattingEnabled = true;
             cmbRxBirim.Items.AddRange(new object[] { "MHz", "GHz" });
-            cmbRxBirim.Location = new Point(240, 31);
+            cmbRxBirim.Location = new Point(247, 31);
             cmbRxBirim.Name = "cmbRxBirim";
             cmbRxBirim.Size = new Size(72, 28);
             cmbRxBirim.TabIndex = 10;
@@ -209,7 +210,7 @@
             // 
             numRxOrnekleme.Cursor = Cursors.Hand;
             numRxOrnekleme.DecimalPlaces = 3;
-            numRxOrnekleme.Location = new Point(135, 66);
+            numRxOrnekleme.Location = new Point(142, 66);
             numRxOrnekleme.Maximum = new decimal(new int[] { 61440000, 0, 0, 0 });
             numRxOrnekleme.Name = "numRxOrnekleme";
             numRxOrnekleme.Size = new Size(100, 27);
@@ -221,7 +222,7 @@
             // 
             numRxBantGenisligi.Cursor = Cursors.Hand;
             numRxBantGenisligi.DecimalPlaces = 3;
-            numRxBantGenisligi.Location = new Point(135, 99);
+            numRxBantGenisligi.Location = new Point(142, 99);
             numRxBantGenisligi.Maximum = new decimal(new int[] { 56000000, 0, 0, 0 });
             numRxBantGenisligi.Name = "numRxBantGenisligi";
             numRxBantGenisligi.Size = new Size(100, 27);
@@ -235,7 +236,7 @@
             cmbRxOrneklemeBirim.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbRxOrneklemeBirim.FormattingEnabled = true;
             cmbRxOrneklemeBirim.Items.AddRange(new object[] { "kSps ", "MSps " });
-            cmbRxOrneklemeBirim.Location = new Point(240, 66);
+            cmbRxOrneklemeBirim.Location = new Point(247, 66);
             cmbRxOrneklemeBirim.Name = "cmbRxOrneklemeBirim";
             cmbRxOrneklemeBirim.Size = new Size(72, 28);
             cmbRxOrneklemeBirim.TabIndex = 17;
@@ -247,7 +248,7 @@
             cmbRxBantBirim.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbRxBantBirim.FormattingEnabled = true;
             cmbRxBantBirim.Items.AddRange(new object[] { "kHz", "MHz" });
-            cmbRxBantBirim.Location = new Point(240, 99);
+            cmbRxBantBirim.Location = new Point(247, 99);
             cmbRxBantBirim.Name = "cmbRxBantBirim";
             cmbRxBantBirim.RightToLeft = RightToLeft.No;
             cmbRxBantBirim.Size = new Size(73, 28);
@@ -285,7 +286,7 @@
             // 
             lblTxKazanciDegeri.AutoSize = true;
             lblTxKazanciDegeri.BackColor = Color.Transparent;
-            lblTxKazanciDegeri.Location = new Point(230, 109);
+            lblTxKazanciDegeri.Location = new Point(230, 119);
             lblTxKazanciDegeri.Name = "lblTxKazanciDegeri";
             lblTxKazanciDegeri.Size = new Size(39, 20);
             lblTxKazanciDegeri.TabIndex = 46;
@@ -295,7 +296,7 @@
             // 
             label10.AutoSize = true;
             label10.ForeColor = SystemColors.ActiveCaptionText;
-            label10.Location = new Point(191, 257);
+            label10.Location = new Point(191, 277);
             label10.Name = "label10";
             label10.Size = new Size(12, 20);
             label10.TabIndex = 22;
@@ -316,7 +317,7 @@
             // 
             btnDcKalibrasyon.BackColor = Color.White;
             btnDcKalibrasyon.Cursor = Cursors.Hand;
-            btnDcKalibrasyon.Location = new Point(21, 217);
+            btnDcKalibrasyon.Location = new Point(21, 237);
             btnDcKalibrasyon.Name = "btnDcKalibrasyon";
             btnDcKalibrasyon.Size = new Size(245, 30);
             btnDcKalibrasyon.TabIndex = 7;
@@ -330,7 +331,7 @@
             chkBiasTee.Cursor = Cursors.Hand;
             chkBiasTee.Enabled = false;
             chkBiasTee.Font = new Font("Segoe UI", 9F);
-            chkBiasTee.Location = new Point(21, 187);
+            chkBiasTee.Location = new Point(21, 207);
             chkBiasTee.Name = "chkBiasTee";
             chkBiasTee.Size = new Size(196, 24);
             chkBiasTee.TabIndex = 5;
@@ -343,7 +344,7 @@
             chkAGC.AutoSize = true;
             chkAGC.Cursor = Cursors.Hand;
             chkAGC.Font = new Font("Segoe UI", 9F);
-            chkAGC.Location = new Point(21, 152);
+            chkAGC.Location = new Point(21, 172);
             chkAGC.Name = "chkAGC";
             chkAGC.Size = new Size(248, 24);
             chkAGC.TabIndex = 4;
@@ -355,7 +356,7 @@
             // 
             label5.AutoSize = true;
             label5.Font = new Font("Segoe UI", 9F);
-            label5.Location = new Point(21, 88);
+            label5.Location = new Point(21, 98);
             label5.Name = "label5";
             label5.Size = new Size(213, 20);
             label5.TabIndex = 3;
@@ -375,7 +376,7 @@
             // 
             // trbTxGain
             // 
-            trbTxGain.Location = new Point(21, 109);
+            trbTxGain.Location = new Point(21, 119);
             trbTxGain.Maximum = 60;
             trbTxGain.Name = "trbTxGain";
             trbTxGain.Size = new Size(213, 56);
@@ -398,7 +399,7 @@
             // 
             chkGurultuEngelle.AutoSize = true;
             chkGurultuEngelle.Cursor = Cursors.Hand;
-            chkGurultuEngelle.Location = new Point(21, 255);
+            chkGurultuEngelle.Location = new Point(21, 275);
             chkGurultuEngelle.MaximumSize = new Size(186, 50);
             chkGurultuEngelle.Name = "chkGurultuEngelle";
             chkGurultuEngelle.Size = new Size(146, 24);
@@ -411,19 +412,20 @@
             // 
             numGurultuEsigi.Cursor = Cursors.Hand;
             numGurultuEsigi.Font = new Font("Segoe UI", 9F);
-            numGurultuEsigi.Location = new Point(206, 255);
+            numGurultuEsigi.Location = new Point(206, 275);
             numGurultuEsigi.Maximum = new decimal(new int[] { 30, 0, 0, 0 });
             numGurultuEsigi.Minimum = new decimal(new int[] { 60, 0, 0, int.MinValue });
             numGurultuEsigi.Name = "numGurultuEsigi";
             numGurultuEsigi.Size = new Size(60, 27);
             numGurultuEsigi.TabIndex = 41;
             numGurultuEsigi.Value = new decimal(new int[] { 30, 0, 0, int.MinValue });
+            numGurultuEsigi.ValueChanged += numGurultuEsigi_ValueChanged;
             // 
             // numKirpmaYuzdesi
             // 
             numKirpmaYuzdesi.Font = new Font("Segoe UI", 9F);
             numKirpmaYuzdesi.InterceptArrowKeys = false;
-            numKirpmaYuzdesi.Location = new Point(230, 255);
+            numKirpmaYuzdesi.Location = new Point(230, 275);
             numKirpmaYuzdesi.Maximum = new decimal(new int[] { 50, 0, 0, 0 });
             numKirpmaYuzdesi.Minimum = new decimal(new int[] { 30, 0, 0, 0 });
             numKirpmaYuzdesi.Name = "numKirpmaYuzdesi";
@@ -496,7 +498,7 @@
             rdoTestModu.BackColor = Color.Transparent;
             rdoTestModu.Cursor = Cursors.Hand;
             rdoTestModu.ForeColor = SystemColors.ActiveCaptionText;
-            rdoTestModu.Location = new Point(10, 86);
+            rdoTestModu.Location = new Point(21, 86);
             rdoTestModu.Name = "rdoTestModu";
             rdoTestModu.Size = new Size(178, 24);
             rdoTestModu.TabIndex = 2;
@@ -509,7 +511,7 @@
             rdoTaarruzModu.BackColor = Color.Transparent;
             rdoTaarruzModu.Cursor = Cursors.Hand;
             rdoTaarruzModu.ForeColor = SystemColors.ActiveCaptionText;
-            rdoTaarruzModu.Location = new Point(10, 56);
+            rdoTaarruzModu.Location = new Point(21, 56);
             rdoTaarruzModu.Name = "rdoTaarruzModu";
             rdoTaarruzModu.Size = new Size(186, 24);
             rdoTaarruzModu.TabIndex = 1;
@@ -524,7 +526,7 @@
             rdoIzlemeModu.Checked = true;
             rdoIzlemeModu.Cursor = Cursors.Hand;
             rdoIzlemeModu.ForeColor = SystemColors.ActiveCaptionText;
-            rdoIzlemeModu.Location = new Point(10, 26);
+            rdoIzlemeModu.Location = new Point(21, 26);
             rdoIzlemeModu.Name = "rdoIzlemeModu";
             rdoIzlemeModu.Size = new Size(201, 24);
             rdoIzlemeModu.TabIndex = 0;
@@ -772,7 +774,7 @@
             // 
             label14.AutoSize = true;
             label14.ForeColor = SystemColors.ActiveCaptionText;
-            label14.Location = new Point(120, 101);
+            label14.Location = new Point(127, 101);
             label14.Name = "label14";
             label14.Size = new Size(12, 20);
             label14.TabIndex = 21;
@@ -782,7 +784,7 @@
             // 
             label13.AutoSize = true;
             label13.ForeColor = SystemColors.ActiveCaptionText;
-            label13.Location = new Point(120, 67);
+            label13.Location = new Point(127, 67);
             label13.Name = "label13";
             label13.Size = new Size(12, 20);
             label13.TabIndex = 20;
@@ -792,7 +794,7 @@
             // 
             label12.AutoSize = true;
             label12.ForeColor = SystemColors.ActiveCaptionText;
-            label12.Location = new Point(120, 33);
+            label12.Location = new Point(127, 33);
             label12.Name = "label12";
             label12.Size = new Size(12, 20);
             label12.TabIndex = 19;
@@ -852,6 +854,7 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(chkTxRxEsle);
             groupBox2.Controls.Add(label16);
             groupBox2.Controls.Add(label18);
             groupBox2.Controls.Add(label19);
@@ -862,11 +865,25 @@
             groupBox2.Controls.Add(label20);
             groupBox2.Location = new Point(1040, 629);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(329, 104);
+            groupBox2.Size = new Size(329, 136);
             groupBox2.TabIndex = 53;
             groupBox2.TabStop = false;
             groupBox2.Text = "TX (Saldırı) RF Parametreleri";
             groupBox2.Enter += groupBox2_Enter;
+            // 
+            // chkTxRxEsle
+            // 
+            chkTxRxEsle.AutoSize = true;
+            chkTxRxEsle.Cursor = Cursors.Hand;
+            chkTxRxEsle.Font = new Font("Segoe UI", 9F);
+            chkTxRxEsle.ForeColor = SystemColors.ActiveCaptionText;
+            chkTxRxEsle.Location = new Point(21, 98);
+            chkTxRxEsle.Name = "chkTxRxEsle";
+            chkTxRxEsle.Size = new Size(234, 24);
+            chkTxRxEsle.TabIndex = 22;
+            chkTxRxEsle.Text = "RX Değerleri ile Eşle ve Kilitlen";
+            chkTxRxEsle.UseVisualStyleBackColor = true;
+            chkTxRxEsle.CheckedChanged += chkTxRxEsle_CheckedChanged;
             // 
             // label16
             // 
@@ -892,7 +909,7 @@
             // 
             label19.AutoSize = true;
             label19.ForeColor = SystemColors.ActiveCaptionText;
-            label19.Location = new Point(10, 33);
+            label19.Location = new Point(21, 38);
             label19.Name = "label19";
             label19.Size = new Size(62, 20);
             label19.TabIndex = 1;
@@ -950,7 +967,7 @@
             // 
             label20.AutoSize = true;
             label20.ForeColor = SystemColors.ActiveCaptionText;
-            label20.Location = new Point(10, 67);
+            label20.Location = new Point(21, 67);
             label20.Name = "label20";
             label20.Size = new Size(100, 20);
             label20.TabIndex = 4;
@@ -1098,5 +1115,6 @@
         private NumericUpDown numTxFrekans;
         private ComboBox cmbTxBantBirim;
         private Label label20;
+        private CheckBox chkTxRxEsle;
     }
 }

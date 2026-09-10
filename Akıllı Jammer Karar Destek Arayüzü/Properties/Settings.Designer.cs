@@ -124,7 +124,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5")]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
         public int HataBeklemeMs {
             get {
                 return ((int)(this["HataBeklemeMs"]));
@@ -187,7 +187,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("150")]
+        [global::System.Configuration.DefaultSettingValueAttribute("300")]
         public int TxRxGecisSuresiMs {
             get {
                 return ((int)(this["TxRxGecisSuresiMs"]));
@@ -559,7 +559,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        [global::System.Configuration.DefaultSettingValueAttribute("80")]
         public int KapanisZamanAsimiIterasyon {
             get {
                 return ((int)(this["KapanisZamanAsimiIterasyon"]));
@@ -568,7 +568,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
         public int KapanisBeklemeMs {
             get {
                 return ((int)(this["KapanisBeklemeMs"]));
@@ -577,7 +577,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("15")]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
         public int ModGecisZamanAsimiIterasyon {
             get {
                 return ((int)(this["ModGecisZamanAsimiIterasyon"]));
@@ -947,7 +947,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2.4")]
         public decimal DroneFrekans {
             get {
                 return ((decimal)(this["DroneFrekans"]));
@@ -956,7 +956,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20.0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("22.0")]
         public decimal DroneOrnekleme {
             get {
                 return ((decimal)(this["DroneOrnekleme"]));
@@ -965,7 +965,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("5.0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("20.0")]
         public decimal DroneBant {
             get {
                 return ((decimal)(this["DroneBant"]));
@@ -1356,6 +1356,150 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü.Properties {
         public string FORMAT_YUZDE {
             get {
                 return ((string)(this["FORMAT_YUZDE"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("15000")]
+        public short CwTaarruzGenlik {
+            get {
+                return ((short)(this["CwTaarruzGenlik"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1000000")]
+        public double CwTaarruzFrekansKaymasiHz {
+            get {
+                return ((double)(this["CwTaarruzFrekansKaymasiHz"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("8192")]
+        public uint DonanimTxBuffer {
+            get {
+                return ((uint)(this["DonanimTxBuffer"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1000")]
+        public uint DonanimTxZamanAsimiMs {
+            get {
+                return ((uint)(this["DonanimTxZamanAsimiMs"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("TX (Saldırı) RF Parametreleri")]
+        public string UI_GRP_TX_PARAM {
+            get {
+                return ((string)(this["UI_GRP_TX_PARAM"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Hedef Profilleri")]
+        public string UI_GRP_HEDEF_PROFILLERI {
+            get {
+                return ((string)(this["UI_GRP_HEDEF_PROFILLERI"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("TAARRUZ AKTİF!")]
+        public string STATUS_TAARRUZ_AKTIF {
+            get {
+                return ((string)(this["STATUS_TAARRUZ_AKTIF"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[SİSTEM] ANA SİLAH: Sürekli Dalga (CW) Taarruzu Başlatıldı!")]
+        public string LOG_ANA_SILAH_CW {
+            get {
+                return ((string)(this["LOG_ANA_SILAH_CW"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[TX DURDU] Hata Kodu: {0} (Cihaz tıkandı)")]
+        public string LOG_TX_DURDU {
+            get {
+                return ((string)(this["LOG_TX_DURDU"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[TX KAPATILDI] Gönderim kesildi. Beklemede.")]
+        public string LOG_TX_KAPATILDI {
+            get {
+                return ((string)(this["LOG_TX_KAPATILDI"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("İzleme geçici olarak durduruldu.")]
+        public string LOG_IZLEME_GECICI_DURDURULDU {
+            get {
+                return ((string)(this["LOG_IZLEME_GECICI_DURDURULDU"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("RX (Dinleme) RF Parametreleri")]
+        public string UI_GRP_RX_PARAM {
+            get {
+                return ((string)(this["UI_GRP_RX_PARAM"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("[SİSTEM KRİZİ]")]
+        public string ERR_SISTEM_KRIZI {
+            get {
+                return ((string)(this["ERR_SISTEM_KRIZI"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("500")]
+        public int TxBaslamaGecikmesiMs {
+            get {
+                return ((int)(this["TxBaslamaGecikmesiMs"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("16")]
+        public uint DonanimTxNumBuffers {
+            get {
+                return ((uint)(this["DonanimTxNumBuffers"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("8")]
+        public uint DonanimTxNumTransfers {
+            get {
+                return ((uint)(this["DonanimTxNumTransfers"]));
             }
         }
     }

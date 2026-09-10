@@ -112,11 +112,12 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             this.StartPosition = FormStartPosition.CenterScreen;
 
             orjinalFormBoyutu = this.ClientSize;
+
             cmbHedefProfilleri.Items.Clear();
 
-            cmbHedefProfilleri.Items.Add(Properties.Settings.Default.UI_PROFIL_DRONE);
-            cmbHedefProfilleri.Items.Add(Properties.Settings.Default.UI_PROFIL_TELSIZ);
-            cmbHedefProfilleri.Items.Add(Properties.Settings.Default.UI_PROFIL_TELEFON);
+            cmbHedefProfilleri.Items.Add(DilMotoru.Cevir(Properties.Settings.Default.UI_PROFIL_DRONE));
+            cmbHedefProfilleri.Items.Add(DilMotoru.Cevir(Properties.Settings.Default.UI_PROFIL_TELSIZ));
+            cmbHedefProfilleri.Items.Add(DilMotoru.Cevir(Properties.Settings.Default.UI_PROFIL_TELEFON));
 
             DilVeTemaMenusuOlustur();
             AyarlariYukle();
@@ -157,12 +158,19 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             EkranModunuAyarla(_ileriModAktif);
             OtopilotuTetikle();
             GrafikGuncelle();
+            GroupBox grpTx = this.Controls.Find("grpTxParametreleri", true).FirstOrDefault() as GroupBox ?? this.Controls.Find("groupBox2", true).FirstOrDefault() as GroupBox;
+            if (grpTx != null && rdoIzlemeModu != null) grpTx.Visible = !rdoIzlemeModu.Checked;
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             AyarlariKaydet();
-            _isStreaming = false;
+
+            if (_isStreaming)
+            {
+                _isStreaming = false;
+                KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_IZLEME_GECICI_DURDURULDU));
+            }
             _saldiriAktif = false;
 
             Task.Run(() =>
@@ -225,7 +233,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             decimal maxVal = gercekMaxHz / carpan;
             decimal minVal = gercekMinHz / carpan;
 
-            // ZIRH 2: Kilitleri serbest bırak, hassasiyeti sabitle ve güvenli sınırla.
             num.Minimum = decimal.MinValue;
             num.Maximum = decimal.MaxValue;
             num.DecimalPlaces = 4;
@@ -367,6 +374,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             {
                 btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_SALDIRI_BASLAT);
                 btnSaldırı.BackColor = Color.Gray;
+                btnSaldırı.ForeColor = Color.White;
             }
 
             if (btnBaglan != null) btnBaglan.Text = _isStreaming ? DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_DURDUR) : DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_BAGLAN);
@@ -374,11 +382,18 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             EkranModunuAyarla(_ileriModAktif);
             this.Refresh();
         }
-
         private void YaziRenkleriniDerinlemesineUygula(System.Windows.Forms.Control.ControlCollection kontroller, Color yaziRengi)
         {
             foreach (System.Windows.Forms.Control c in kontroller)
             {
+                if (c is GroupBox grp)
+                {
+                    if (grp.Name.Contains("Tx") || grp.Name == "groupBox2" || grp.Text.Contains("TX"))
+                        grp.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_GRP_TX_PARAM);
+                    else if (grp.Name.Contains("Rx") || grp.Name == "groupBox1" || grp.Text.Contains("RX"))
+                        grp.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_GRP_RX_PARAM);
+                }
+
                 if (c is GroupBox || c is Panel)
                 {
                     c.BackColor = TemaMotoru.TEMA_PASIF;
@@ -390,7 +405,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     c.ForeColor = Color.Black;
                     if (c is ComboBox cmb) cmb.FlatStyle = FlatStyle.Standard;
                 }
-                else if (c.ForeColor != Color.LimeGreen && c.ForeColor != Color.Lime && c.Name != "lblTehditDurumu")
+                else if (c.ForeColor != Color.LimeGreen && c.ForeColor != Color.Lime && c.Name != "lblTehditDurumu" && c.Name != "btnSaldırı")
                 {
                     if (c is RadioButton || c is CheckBox || c is Label) c.ForeColor = yaziRengi;
                 }
@@ -398,7 +413,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 if (c.HasChildren) YaziRenkleriniDerinlemesineUygula(c.Controls, yaziRengi);
             }
         }
-
         private void EkranModunuAyarla(bool ileriModAcik)
         {
             this.SuspendLayout();
@@ -407,7 +421,18 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             {
                 foreach (System.Windows.Forms.Control c in this.Controls)
                 {
-                    if (c.Left >= picGrafik.Right && (c is GroupBox || c is Button || c is Panel)) c.Visible = true;
+                    if (c.Left >= picGrafik.Right && (c is GroupBox || c is Button || c is Panel))
+                    {
+                        // EĞER KUTU TX PARAMETRELERİ İSE VE İZLEME MODU SEÇİLİYSE GİZLİ TUT
+                        if ((c.Name == "grpTxParametreleri" || c.Name == "groupBox2") && rdoIzlemeModu != null && rdoIzlemeModu.Checked)
+                        {
+                            c.Visible = false;
+                        }
+                        else
+                        {
+                            c.Visible = true;
+                        }
+                    }
                 }
                 btnModMuhendis.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_TAKTIK_MODA_DON);
                 this.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_MOD_MUHENDIS_BASLIK);
@@ -457,6 +482,20 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private async void DinamikParametreUygula()
         {
             if (!_isDeviceOpen || _islemeKilidi || _profilYukleniyor || _otomatikDegisim) return;
+
+            if (chkTxRxEsle != null && chkTxRxEsle.Checked)
+            {
+                if (cmbTxBirim != null && cmbRxBirim != null)
+                    cmbTxBirim.SelectedIndex = cmbRxBirim.SelectedIndex;
+                if (cmbTxBantBirim != null && cmbRxBantBirim != null)
+                    cmbTxBantBirim.SelectedIndex = cmbRxBantBirim.SelectedIndex;
+
+                UI_LimitleriUygula();
+
+                GuvenliAta(numTxFrekans, numRxFrekans.Value);
+                GuvenliAta(numTxBantGenisligi, numRxBantGenisligi.Value);
+            }
+
             if (_dinamikGuncellemeBekliyor) return;
 
             _dinamikGuncellemeBekliyor = true;
@@ -465,7 +504,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
             await CihazParametreleriniUygula();
         }
-
         private async void btnBaglan_Click(object sender, EventArgs e)
         {
             if (_islemeKilidi) return;
@@ -625,7 +663,8 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                         {
                             _isStreaming = false;
 
-                            this.Invoke((MethodInvoker)delegate {
+                            this.Invoke((MethodInvoker)delegate
+                            {
                                 btnBaglan.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_BAGLAN);
                             });
 
@@ -652,6 +691,9 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             _saldiriAktif = false;
             int hedefLoopback = 0;
 
+            GroupBox grpTx = this.Controls.Find("grpTxParametreleri", true).FirstOrDefault() as GroupBox
+                          ?? this.Controls.Find("groupBox2", true).FirstOrDefault() as GroupBox;
+
             if (secilenButon.Name == "rdoTestModu")
             {
                 hedefLoopback = 2;
@@ -664,6 +706,8 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     btnSaldırı.ForeColor = Color.Black;
                     btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_TEST_GONDER);
                 }
+
+                if (grpTx != null) grpTx.Visible = true;
             }
             else if (secilenButon.Name == "rdoTaarruzModu")
             {
@@ -677,6 +721,8 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     btnSaldırı.ForeColor = Color.White;
                     btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_SALDIRI_BASLAT);
                 }
+
+                if (grpTx != null) grpTx.Visible = true;
             }
             else
             {
@@ -690,6 +736,8 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     btnSaldırı.ForeColor = Color.White;
                     btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_SALDIRI_BASLAT);
                 }
+
+                if (grpTx != null) grpTx.Visible = false;
             }
 
             lblTehditDurumu.ForeColor = Color.White;
@@ -727,7 +775,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 });
             }
         }
-
         private void btnSaldırı_Click_1(object sender, EventArgs e)
         {
             if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
@@ -736,55 +783,56 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             {
                 ulong txFrekans = 0;
                 uint txBant = 0;
-                int txKazanc = trbTxGain != null ? trbTxGain.Value : 40;
+                int txKazanc = trbTxGain != null ? trbTxGain.Value : Properties.Settings.Default.VarsayilanTxKazanci;
 
                 try
                 {
-                    decimal txFrekansCarpani = cmbTxBirim.Text.Contains("G") ? 1000000000m : (cmbTxBirim.Text.Contains("M") ? 1000000m : 1000m);
+                    decimal txFrekansCarpani = cmbTxBirim.Text.Contains("G") ? (decimal)Properties.Settings.Default.CarpanGiga : (cmbTxBirim.Text.Contains("M") ? (decimal)Properties.Settings.Default.CarpanMega : (decimal)Properties.Settings.Default.CarpanKilo);
                     txFrekans = (ulong)(numTxFrekans.Value * txFrekansCarpani);
 
-                    decimal txBantCarpani = cmbTxBantBirim.Text.Contains("G") ? 1000000000m : (cmbTxBantBirim.Text.Contains("M") ? 1000000m : 1000m);
+                    decimal txBantCarpani = cmbTxBantBirim.Text.Contains("G") ? (decimal)Properties.Settings.Default.CarpanGiga : (cmbTxBantBirim.Text.Contains("M") ? (decimal)Properties.Settings.Default.CarpanMega : (decimal)Properties.Settings.Default.CarpanKilo);
                     txBant = (uint)(numTxBantGenisligi.Value * txBantCarpani);
                 }
                 catch { return; }
 
                 _saldiriAktif = true;
-                btnSaldırı.Text = "SİNYALİ KES";
+
+                btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_SINYALI_KES);
                 btnSaldırı.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
                 btnSaldırı.ForeColor = Color.White;
-                lblTehditDurumu.Text = "TAARRUZ AKTİF!";
+
+                lblTehditDurumu.Text = DilMotoru.Cevir(Properties.Settings.Default.STATUS_TAARRUZ_AKTIF);
                 lblTehditDurumu.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
-                KonsolaYaz($"[SİSTEM] ANA SİLAH: Sürekli Dalga (CW) Taarruzu Başlatıldı!");
+
+                KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_ANA_SILAH_CW));
 
                 Task.Run(async () =>
                 {
                     try
                     {
-                        _isStreaming = false;
-                        await Task.Delay(200);
+                        await Task.Delay(Properties.Settings.Default.TxBaslamaGecikmesiMs);
 
-                        BladeRFBridge.bladerf_enable_module(_devicePointer, 0, false);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 1, false);
 
                         BladeRFBridge.bladerf_set_frequency(_devicePointer, 1, txFrekans);
 
-                        uint hedefHiz = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : 16440000u;
+                        uint hedefHiz = donanimGercekOrnekleme > 0 ? donanimGercekOrnekleme : (uint)Properties.Settings.Default.VarsayilanOrneklemeHz;
                         BladeRFBridge.bladerf_set_sample_rate(_devicePointer, 1, hedefHiz, out uint gercekTx);
-                        donanimGercekOrnekleme = gercekTx;
 
                         BladeRFBridge.bladerf_set_bandwidth(_devicePointer, 1, txBant, out uint _);
                         BladeRFBridge.bladerf_set_gain(_devicePointer, 1, txKazanc);
 
-                        uint donanim_buffer = 8192u;
-                        uint timeout_ms = 1000u;
+                        uint donanim_buffer = Properties.Settings.Default.DonanimTxBuffer;
+                        uint timeout_ms = Properties.Settings.Default.DonanimTxZamanAsimiMs;
+                        uint donanim_num_buffers = Properties.Settings.Default.DonanimTxNumBuffers;
+                        uint donanim_num_transfers = Properties.Settings.Default.DonanimTxNumTransfers;
 
-                        BladeRFBridge.bladerf_sync_config(_devicePointer, 1, 0, 16u, donanim_buffer, 8u, timeout_ms);
-
+                        BladeRFBridge.bladerf_sync_config(_devicePointer, 1, 0, donanim_num_buffers, donanim_buffer, donanim_num_transfers, timeout_ms);
                         BladeRFBridge.bladerf_enable_module(_devicePointer, 1, true);
 
                         short[] testSinyali = new short[donanim_buffer * 2];
-                        short genlik = 15000; 
-                        double f_offset = 1000000.0; 
+                        short genlik = Properties.Settings.Default.CwTaarruzGenlik;
+                        double f_offset = Properties.Settings.Default.CwTaarruzFrekansKaymasiHz;
                         double t_adim = 1.0 / hedefHiz;
 
                         for (int i = 0; i < donanim_buffer; i++)
@@ -799,15 +847,10 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                         while (_saldiriAktif)
                         {
                             int txStatus = BladeRFBridge.bladerf_sync_tx(_devicePointer, testSinyali, donanim_buffer, IntPtr.Zero, timeout_ms);
-
-                            if (txStatus != 0)
-                            {
-                                KonsolaYaz($"[TX DURDU] Hata Kodu: {txStatus} (Cihaz tıkandı)");
-                                break;
-                            }
+                            if (txStatus != 0) break;
                         }
                     }
-                    catch (Exception ex) { KonsolaYaz($"[SİSTEM KRİZİ] {ex.Message}"); }
+                    catch (Exception ex) { KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.ERR_SISTEM_KRIZI) + ex.Message); }
                     finally
                     {
                         _saldiriAktif = false;
@@ -818,10 +861,10 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             else
             {
                 _saldiriAktif = false;
-                _isStreaming = false;
-                btnSaldırı.Text = "SALDIRI BAŞLAT";
+                btnSaldırı.Text = DilMotoru.Cevir(Properties.Settings.Default.UI_BTN_SALDIRI_BASLAT);
                 btnSaldırı.BackColor = TemaMotoru.TEMA_TAARRUZ_AKTIF;
-                KonsolaYaz("[TX KAPATILDI] Gönderim kesildi. Beklemede.");
+                btnSaldırı.ForeColor = Color.White;
+                KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_TX_KAPATILDI));
             }
         }
         private async void btnDcKalibrasyon_Click(object sender, EventArgs e)
@@ -955,7 +998,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                         int merkezX = tuval.Width / 2;
                         g.DrawLine(Pens.DarkRed, merkezX, 0, merkezX, tuval.Height);
                         g.DrawString(DilMotoru.Cevir(Properties.Settings.Default.UI_GRAFIK_ALT_FREKANSLAR), eksenFontu, Brushes.DarkGray, 15, tuval.Height - 40);
-                        g.DrawString(DilMotoru.Cevir(Properties.Settings.Default.UI_GRAFIK_UST_FREKANSLAR), eksenFontu, Brushes.DarkGray, tuval.Width - 115, tuval.Height - 40);
+                        g.DrawString(DilMotoru.Cevir(Properties.Settings.Default.UI_GRAFIK_UST_FREKANSLAR), eksenFontu, Brushes.DarkGray, tuval.Width - 135, tuval.Height - 40);
                     }
 
                     if (num_samples > 1)
@@ -1028,16 +1071,12 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
                                 if (gurultuEngelleAktif && islenecekDb < gurultuEsigi) islenecekDb = min_dB + 1.0;
 
-                                // 🚀 MÜHENDİSLİK ÇÖZÜMÜ: Peak-Hold (Hızlı Saldırı, Yavaş Sönümleme)
-                                // Eğer gelen yeni sinyal (Jammer) ekrandaki çizimden daha güçlüyse, 
-                                // filtreyi tamamen by-pass edip mızrağı ANINDA ekrana saplıyoruz!
                                 if (islenecekDb > yumusatilmisFFT[pixelX])
                                 {
                                     yumusatilmisFFT[pixelX] = islenecekDb;
                                 }
                                 else
                                 {
-                                    // Sinyal kesildiğinde veya düştüğünde yavaşça sönümle (Yumuşatma burada çalışsın)
                                     yumusatilmisFFT[pixelX] = (alpha * islenecekDb) + ((1 - alpha) * yumusatilmisFFT[pixelX]);
                                 }
 
@@ -1170,8 +1209,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     using (Font markerFontu = new Font("Consolas", 10, FontStyle.Bold))
                     {
                         e.Graphics.DrawLine(markerKalemi, markerPixelX, 0, markerPixelX, picGrafik.Height);
-                        string markerYazi = string.Format(DilMotoru.Cevir(Properties.Settings.Default.UI_MARKER_METIN), (hedefMarkerFrekansHz / Properties.Settings.Default.CarpanMega));
-
+                        string markerYazi = string.Format(DilMotoru.Cevir(Properties.Settings.Default.UI_MARKER_METIN), (hedefMarkerFrekansHz / (double)Properties.Settings.Default.CarpanMega));
                         SizeF textSize = e.Graphics.MeasureString(markerYazi, markerFontu);
                         float yaziX = markerPixelX + 5;
 
@@ -1201,7 +1239,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     {
                         _seciliDil = ayarlar.SeciliDil ?? Properties.Settings.Default.VARSAYILAN_DIL;
                         _seciliTema = ayarlar.SeciliTema ?? Properties.Settings.Default.VARSAYILAN_TEMA;
-
                         TemaMotoru.Yukle(_seciliTema);
                         DilMotoru.Yukle(_seciliDil);
                         TemaVeDiliEkranaBas();
@@ -1214,31 +1251,19 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                         trbSquelch.Value = sq;
                         if (lblSqulechTehtid != null) lblSqulechTehtid.Text = string.Format(Properties.Settings.Default.FORMAT_YUZDE, trbSquelch.Value);
 
-                        int ym = ayarlar.Yumusatma;
-                        if (ym < trbYumusatma.Minimum) ym = trbYumusatma.Minimum;
-                        if (ym > trbYumusatma.Maximum) ym = trbYumusatma.Maximum;
-                        trbYumusatma.Value = ym;
-                        alpha = ym / Properties.Settings.Default.YuzdeBolen;
-                        if (lblYumusatmaDegeri != null) lblYumusatmaDegeri.Text = string.Format(Properties.Settings.Default.FORMAT_YUZDE, trbYumusatma.Value);
-
-                        int th = ayarlar.TaramaHizi;
-                        if (th < trbTaramaHizi.Minimum) th = trbTaramaHizi.Minimum;
-                        if (th > trbTaramaHizi.Maximum) th = trbTaramaHizi.Maximum;
-                        trbTaramaHizi.Value = th;
-                        taramaGecikmesi = th;
-                        if (lblTaramaHiziDegeri != null) lblTaramaHiziDegeri.Text = string.Format(Properties.Settings.Default.FORMAT_MS, trbTaramaHizi.Value);
-
                         foreach (var profil in ozelProfiller.Keys)
                         {
                             if (!cmbHedefProfilleri.Items.Contains(profil)) cmbHedefProfilleri.Items.Add(profil);
                         }
+
+                        if (!string.IsNullOrEmpty(ayarlar.SonSecilenProfil) && cmbHedefProfilleri.Items.Contains(ayarlar.SonSecilenProfil))
+                        {
+                            cmbHedefProfilleri.SelectedItem = ayarlar.SonSecilenProfil;
+                        }
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                KonsolaYaz(string.Format(DilMotoru.Cevir(Properties.Settings.Default.LOG_ISLEM_BASARISIZ), ex.Message));
-            }
+            catch { }
         }
 
         private void AyarlariKaydet()
@@ -1252,17 +1277,15 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                     Yumusatma = trbYumusatma.Value,
                     TaramaHizi = trbTaramaHizi.Value,
                     SeciliDil = _seciliDil,
-                    SeciliTema = _seciliTema
+                    SeciliTema = _seciliTema,
+                    SonSecilenProfil = cmbHedefProfilleri.SelectedItem?.ToString() ?? string.Empty
                 };
 
                 JsonSerializerOptions secenekler = new JsonSerializerOptions { WriteIndented = true };
                 string jsonMetni = JsonSerializer.Serialize(ayarlar, secenekler);
                 File.WriteAllText(Properties.Settings.Default.DOSYA_AYARLAR, jsonMetni);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(DilMotoru.Cevir(Properties.Settings.Default.ERR_AYAR_KAYDEDILEMEDI) + ex.Message, DilMotoru.Cevir(Properties.Settings.Default.ERR_KAYIT_BASLIK), MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            catch { }
         }
 
         private string PromptGoster(string metin, string baslik)
@@ -1454,7 +1477,9 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
                     KonsolaYaz($"[SİSTEM] {secilenItem} {DilMotoru.Cevir(Properties.Settings.Default.LOG_PROFIL_YUKLENDI)}");
                 }
-                else if (secilenItem == Properties.Settings.Default.UI_PROFIL_DRONE)
+                // ... (Özel profil şartları ve Yeni Profil Ekleme kısımları aynı kalacak)
+
+                else if (secilenItem == DilMotoru.Cevir(Properties.Settings.Default.UI_PROFIL_DRONE))
                 {
                     cmbRxBirim.SelectedIndex = cmbRxBirim.FindString(Properties.Settings.Default.BIRIM_GHZ);
                     GuvenliAta(numRxFrekans, (decimal)Properties.Settings.Default.DroneFrekans);
@@ -1467,7 +1492,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
                     KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_PROFIL_DRONE));
                 }
-                else if (secilenItem == Properties.Settings.Default.UI_PROFIL_TELSIZ)
+                else if (secilenItem == DilMotoru.Cevir(Properties.Settings.Default.UI_PROFIL_TELSIZ))
                 {
                     cmbRxBirim.SelectedIndex = cmbRxBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
                     GuvenliAta(numRxFrekans, (decimal)Properties.Settings.Default.TelsizFrekans);
@@ -1480,7 +1505,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
 
                     KonsolaYaz(DilMotoru.Cevir(Properties.Settings.Default.LOG_PROFIL_TELSIZ));
                 }
-                else if (secilenItem == Properties.Settings.Default.UI_PROFIL_TELEFON)
+                else if (secilenItem == DilMotoru.Cevir(Properties.Settings.Default.UI_PROFIL_TELEFON))
                 {
                     cmbRxBirim.SelectedIndex = cmbRxBirim.FindString(Properties.Settings.Default.BIRIM_MHZ);
                     GuvenliAta(numRxFrekans, (decimal)Properties.Settings.Default.TelefonFrekans);
@@ -1497,6 +1522,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
                 UI_LimitleriUygula();
                 _otomatikDegisim = false;
             }
+
 
             _profilYukleniyor = false;
 
@@ -1599,7 +1625,6 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         {
             if (!_isDeviceOpen || _devicePointer == IntPtr.Zero) return;
 
-            // Hem dinleme (RX) hem de saldırı (TX) portlarındaki aktif amfilere 5V gücü bas!
             BladeRFBridge.bladerf_set_bias_tee(_devicePointer, BladeRFBridge.BLADERF_MODULE_RX, chkBiasTee.Checked);
             BladeRFBridge.bladerf_set_bias_tee(_devicePointer, BladeRFBridge.BLADERF_MODULE_TX, chkBiasTee.Checked);
         }
@@ -1667,9 +1692,10 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
             if (chkMarkerAktif.Checked)
             {
                 double fCarpan = 1;
-                if (cmbRxBirim.Text == "kHz") fCarpan = Properties.Settings.Default.CarpanKilo;
-                else if (cmbRxBirim.Text == "MHz") fCarpan = Properties.Settings.Default.CarpanMega;
-                else if (cmbRxBirim.Text == "GHz") fCarpan = Properties.Settings.Default.CarpanGiga;
+                if (cmbRxBirim.Text == "kHz") fCarpan = (double)Properties.Settings.Default.CarpanKilo;
+                else if (cmbRxBirim.Text == "MHz") fCarpan = (double)Properties.Settings.Default.CarpanMega;
+                else if (cmbRxBirim.Text == "GHz") fCarpan = (double)Properties.Settings.Default.CarpanGiga;
+
                 hedefMarkerFrekansHz = (double)numRxFrekans.Value * fCarpan;
             }
             picGrafik.Invalidate();
@@ -1754,6 +1780,33 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         private void label10_Click(object sender, EventArgs e) { }
         private void groupBox1_Enter(object sender, EventArgs e) { }
         #endregion
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void chkTxRxEsle_CheckedChanged(object sender, EventArgs e)
+        {
+            if (chkTxRxEsle.Checked)
+            {
+                if (cmbTxBirim != null && cmbRxBirim != null)
+                    cmbTxBirim.SelectedIndex = cmbRxBirim.SelectedIndex;
+
+                if (cmbTxBantBirim != null && cmbRxBantBirim != null)
+                    cmbTxBantBirim.SelectedIndex = cmbRxBantBirim.SelectedIndex;
+
+                UI_LimitleriUygula();
+
+                GuvenliAta(numTxFrekans, numRxFrekans.Value);
+                GuvenliAta(numTxBantGenisligi, numRxBantGenisligi.Value);
+            }
+        }
+
+        private void numGurultuEsigi_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
     }//SAĞLAM SIN 
 
     #region 9. SİSTEM AYAR MODELLERİ
@@ -1765,6 +1818,7 @@ namespace Akıllı_Jammer_Karar_Destek_Arayüzü
         public int TaramaHizi { get; set; } = 10;
         public string SeciliDil { get; set; } = Properties.Settings.Default.VARSAYILAN_DIL;
         public string SeciliTema { get; set; } = Properties.Settings.Default.VARSAYILAN_TEMA;
+        public string SonSecilenProfil { get; set; } = string.Empty;
     }
     #endregion
 }

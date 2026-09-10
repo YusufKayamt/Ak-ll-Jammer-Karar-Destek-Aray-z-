@@ -36,7 +36,7 @@
       <Value Profile="(Default)">500</Value>
     </Setting>
     <Setting Name="HataBeklemeMs" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">5</Value>
+      <Value Profile="(Default)">50</Value>
     </Setting>
     <Setting Name="MinFrekansHz" Type="System.Int64" Scope="Application">
       <Value Profile="(Default)">70000000</Value>
@@ -57,7 +57,7 @@
       <Value Profile="(Default)">0.30</Value>
     </Setting>
     <Setting Name="TxRxGecisSuresiMs" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">150</Value>
+      <Value Profile="(Default)">300</Value>
     </Setting>
     <Setting Name="LOG_BAGLANIYOR" Type="System.String" Scope="Application">
       <Value Profile="(Default)">[SİSTEM] Cihaza bağlanılıyor...</Value>
@@ -180,13 +180,13 @@
       <Value Profile="(Default)">TEMA DOSYASINDA YAZIM HATASI VAR!\nDosya: {0}\nDetay: {1}\n\nLütfen JSON dosyasındaki virgül ve tırnak işaretlerini kontrol edin.</Value>
     </Setting>
     <Setting Name="KapanisZamanAsimiIterasyon" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">20</Value>
+      <Value Profile="(Default)">80</Value>
     </Setting>
     <Setting Name="KapanisBeklemeMs" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">50</Value>
+      <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="ModGecisZamanAsimiIterasyon" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">15</Value>
+      <Value Profile="(Default)">50</Value>
     </Setting>
     <Setting Name="ModGecisBeklemeMs" Type="System.Int32" Scope="Application">
       <Value Profile="(Default)">100</Value>
@@ -445,6 +445,54 @@
     </Setting>
     <Setting Name="FORMAT_YUZDE" Type="System.String" Scope="Application">
       <Value Profile="(Default)">{0}dB</Value>
+    </Setting>
+    <Setting Name="CwTaarruzGenlik" Type="System.Int16" Scope="Application">
+      <Value Profile="(Default)">15000</Value>
+    </Setting>
+    <Setting Name="CwTaarruzFrekansKaymasiHz" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">1000000</Value>
+    </Setting>
+    <Setting Name="DonanimTxBuffer" Type="System.UInt32" Scope="Application">
+      <Value Profile="(Default)">8192</Value>
+    </Setting>
+    <Setting Name="DonanimTxZamanAsimiMs" Type="System.UInt32" Scope="Application">
+      <Value Profile="(Default)">1000</Value>
+    </Setting>
+    <Setting Name="UI_GRP_TX_PARAM" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">TX (Saldırı) RF Parametreleri</Value>
+    </Setting>
+    <Setting Name="UI_GRP_HEDEF_PROFILLERI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Hedef Profilleri</Value>
+    </Setting>
+    <Setting Name="STATUS_TAARRUZ_AKTIF" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">TAARRUZ AKTİF!</Value>
+    </Setting>
+    <Setting Name="LOG_ANA_SILAH_CW" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM] ANA SİLAH: Sürekli Dalga (CW) Taarruzu Başlatıldı!</Value>
+    </Setting>
+    <Setting Name="LOG_TX_DURDU" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[TX DURDU] Hata Kodu: {0} (Cihaz tıkandı)</Value>
+    </Setting>
+    <Setting Name="LOG_TX_KAPATILDI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[TX KAPATILDI] Gönderim kesildi. Beklemede.</Value>
+    </Setting>
+    <Setting Name="LOG_IZLEME_GECICI_DURDURULDU" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">İzleme geçici olarak durduruldu.</Value>
+    </Setting>
+    <Setting Name="UI_GRP_RX_PARAM" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">RX (Dinleme) RF Parametreleri</Value>
+    </Setting>
+    <Setting Name="ERR_SISTEM_KRIZI" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">[SİSTEM KRİZİ]</Value>
+    </Setting>
+    <Setting Name="TxBaslamaGecikmesiMs" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">500</Value>
+    </Setting>
+    <Setting Name="DonanimTxNumBuffers" Type="System.UInt32" Scope="Application">
+      <Value Profile="(Default)">16</Value>
+    </Setting>
+    <Setting Name="DonanimTxNumTransfers" Type="System.UInt32" Scope="Application">
+      <Value Profile="(Default)">8</Value>
     </Setting>
   </Settings>
 </SettingsFile>
